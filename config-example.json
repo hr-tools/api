@@ -8,5 +8,9 @@
             "email": "email@horsereality.nl",
             "password": "wachtwoord123"
         }
+    },
+    "output-directory": {
+        "name": "coolhorsepics", // cooldomain.com/coolhorsepics/...
+        "path": "rendered" // /home/shay/realmerge/rendered/...
     }
 }
