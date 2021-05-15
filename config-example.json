@@ -1,0 +1,12 @@
+{
+    "authentication": {
+        "com": {
+            "email": "email@horsereality.com",
+            "password": "password123"
+        },
+        "nl": {
+            "email": "email@horsereality.nl",
+            "password": "wachtwoord123"
+        }
+    }
+}
