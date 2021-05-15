@@ -16,7 +16,7 @@ A live instance can be found at [realmerge.shay.cat](https://realmerge.shay.cat)
 
 * Python >=3.6
 * The packages in [`requirements.txt`](https://github.com/shayypy/realmerge/blob/main/requirements.txt)
-* A folder to save merged files to in your working directory. By default this should be `rendered`
+* A folder to save merged files to in your working directory. By default this should be `rendered`.
 
 ## Configuration
 
@@ -30,7 +30,7 @@ If you don't want to support a specific server on your instance, just remove its
 
 ### `output-directory` (optional)
 
-If you want to customize where Realmerge saves merged images, you can change the `name` and `path` values here.
+If you want to customize where Realmerge saves merged images, you can set the `name` and `path` values here.
 
 #### `name`
 
