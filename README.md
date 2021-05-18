@@ -14,7 +14,7 @@ A live instance can be found at [realmerge.shay.cat](https://realmerge.shay.cat)
 
 ## Requirements
 
-* Python >=3.6
+* Python >=3.7
 * The packages in [`requirements.txt`](https://github.com/shayypy/realmerge/blob/main/requirements.txt)
 * A folder to save merged files to in your working directory. By default this should be `rendered`.
 
