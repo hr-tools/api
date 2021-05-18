@@ -1,0 +1,62 @@
+:root {
+    --navy: #081b28;
+}
+
+body {background-color: #eaf0f2; text-align: center; font-family: roboto, sans-serif; padding:20px;}
+html, body {margin: 0}
+
+.box {
+    margin: auto;
+    margin-bottom: 20px;
+    padding: 20px;
+    padding-bottom: 28px;
+    border-radius: 4px;
+    border-color: var(--navy);
+    border-top: 35px solid;
+    max-width: 550px;
+    background-color: white;
+    box-shadow: #e1e1e1 8px 8px 15px;
+}
+.box-title {
+    text-align: left;
+    color: white;
+    position: absolute;
+    margin-top: -49px;
+    margin-left: -10px;
+}
+input {font-family: roboto, sans-serif;}
+#horseurl {
+    width: 75%;
+    border: gray 1px solid;
+    border-radius: 4px;
+    padding: 4px;
+    background-color: #FEFEFE;
+}
+#submitbutton {
+    background-color: #ffa200;
+    border: none;
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+#submitbutton:hover {
+    background-color: #C48900;
+    transition: background-color 0.2s;
+}
+.footer-credit {
+    bottom: 0;
+    position: absolute;
+    font-size: 12px;
+    text-align: left;
+    color: #696969; /* lol */
+    background-color: white;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 20px;
+    box-shadow: #e1e1e1 6px 6px 15px;
+}
+a {color: rgb(74, 122, 155); text-decoration: none}
+a:hover {color: #183448}

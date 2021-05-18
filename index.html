@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Realmerge for Horse Reality</title>
+    <link rel="stylesheet" href="/static/style.css"/>
+    <script>
+        // if someone requests the same URL multiple times, cache the name
+        // here instead of on the server
+        const namecache = {};
+
+        function displayError(message) {
+            document.getElementById('error-message').innerHTML = message;
+            document.getElementById('error-box').style.display = 'block';
+            document.getElementById('merged-image-box').style.display = 'none';
+        }
+
+        async function mergeImage() {
+            // basic UX in case the request takes a long time
+            const horseurl = document.getElementById('horseurl').value;
+            document.getElementById('merged-image-title').innerHTML = 'Processing...';
+            document.getElementById('merged-image').src = '';
+            document.getElementById('horseurl').value = null;
+
+            if (!horseurl) {
+                displayError('Input box must not be empty.');
+                return
+            }
+
+            document.getElementById('merged-image-box').style.display = 'block';
+            document.getElementById('merged-image-title').innerHTML = 'Merging...';
+
+            const response = await fetch('/api/merge', {
+                method: 'POST',
+                body: JSON.stringify({url: horseurl}),
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                displayError(data.message);
+                return
+            } else {
+                document.getElementById('error-box').style.display = 'none';
+                document.getElementById('merged-image-box').style.display = 'block';
+                // it might be hidden if the previous
+                // request resulted in an error
+            }
+
+            if (response.status == 200) {
+                // 200 OK is only returned when the image is already merged
+                // this could be more clearly indicated but, eh
+                // https://github.com/shayypy/realmerge/blob/main/web.py#L192-L197
+                if (namecache[data.original_url] & !data.name) {
+                    data.name = namecache[data.original_url];
+                }
+            }
+
+            document.getElementById('merged-image').src = data.url;
+            if (!data.name) {
+                document.getElementById('merged-image-title').innerHTML = 'Merged Image';
+            } else {
+                document.getElementById('merged-image-title').innerHTML = data.name;
+                namecache[data.original_url] = data.name
+            }
+        }
+    </script>
+</head>
+<body>
+<iframe style="display:none" name="hide-form-req"></iframe>
+<div class="box">
+    <h3 class="box-title">Realmerge</h3>
+    <form target="hide-form-req" action="/api/eat" method="POST" onsubmit="mergeImage();">
+        <input required pattern="^https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{3,10})\/.*" type="url" name="url" id="horseurl" placeholder="https://horsereality.com/horses/...">
+        <button type="submit" id="submitbutton">Generate</button>
+    </form>
+</div>
+<div class="box" id="error-box" style="padding-bottom:20px;display:none;border-color:red">
+    <h3 class="box-title">Error</h3>
+    <p style="margin:0" id="error-message"></p>
+</div>
+<div class="box" id="merged-image-box" style="padding-bottom:20px;display:none">
+    <h3 class="box-title" id="merged-image-title"></h3>
+    <img id="merged-image" src="">
+</div>
+<div class="footer-credit">
+    <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>
+    <h5 style="margin:0">🔗 Source on <a href="https://github.com/shayypy/realmerge" target="_blank">GitHub</a>. Realmerge © shay (shayypy)</h5>
+</div>
+</body>
+</html>
