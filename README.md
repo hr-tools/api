@@ -28,7 +28,7 @@ Horse pages cannot be viewed without being logged in, so we use cookies to tell 
 
 If you don't want to support a specific server on your instance, just remove its key to ignore it. Blanking out both will raise an error, though.
 
-### `output-directory` (optional)
+### `output` (optional)
 
 If you want to customize where Realmerge saves merged images, you can set the `name` and `path` values here.
 

@@ -20,7 +20,7 @@ if not config['authentication'].get('com') and not config['authentication'].get(
     msg = 'You must have authentication data for .com, .nl, or both.'
     raise ValueError(msg)
 
-output_config = config.get('output-directory', {})
+output_config = config.get('output', {})
 output_route = output_config.get('name', 'rendered')
 output_path = output_config.get('path', 'rendered')
 

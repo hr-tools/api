@@ -9,7 +9,7 @@
             "password": "wachtwoord123"
         }
     },
-    "output-directory": {
+    "output": {
         "name": "coolhorsepics", // cooldomain.com/coolhorsepics/...
         "path": "rendered" // /home/shay/realmerge/rendered/...
     }
