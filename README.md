@@ -6,7 +6,7 @@ The source is provided here for part educational purposes (the actual merge proc
 
 # Demonstration
 
-![demonstration]()
+![demonstration](https://github.com/shayypy/realmerge/blob/main/static/example.gif)
 
 # Self-Hosting
 
