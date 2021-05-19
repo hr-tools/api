@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import base64
 from bs4 import BeautifulSoup
 from io import BytesIO
 import json
@@ -25,8 +26,9 @@ output_path = output_config.get('path', 'rendered')
 
 app = sanic.Sanic(__name__)
 app.static(f'/static', 'static')
-app.static(f'/{output_route}', output_path)
-# horsereality.com/rules section 10 seems to allow saving artwork like this
+if output_path is not None:
+    app.static(f'/{output_route}', output_path)
+    # horsereality.com/rules section 10 seems to allow saving artwork like this
 
 @app.listener('after_server_start')
 async def init_aiohttp_session(app, loop):
@@ -148,9 +150,30 @@ def pil_process(horse_id, bytefiles):
 
         new_image = Image.alpha_composite(new_image, image)
 
-    if new_image is not None:
+    if new_image is None:
+        msg = 'No images.'
+        raise ValueError(msg)
+
+    def as_base64_data():
+        bio = BytesIO()
+        new_image.save(bio, format='PNG')
+        b64_str = base64.b64encode(bio.getvalue())
+        data_str_bytes = bytes(f'data:image/png;base64,', encoding='utf-8') + b64_str
+        data_str = data_str_bytes.decode(encoding='utf-8')
+        return data_str
+
+    if output_path is None:
+        # this instance's config said not to save images locally
+        return as_base64_data()
+
+    try:
         local_route = f'{output_path}/{horse_id}.png'
         new_image.save(local_route)
+    except PermissionError:
+        # couldn't save to local path (fix ur perms!), return as b64 anyway
+        # this is sort of implicit but I hope most people running this app will
+        # read the README and figure out the problem if they don't want this
+        return as_base64_data()
 
     web_route = f'/{output_route}/{horse_id}.png'
     return web_route
@@ -182,7 +205,7 @@ async def page_process(request):
     # this might cause issues if the same horse ever changes appearance,
     # i'm not sure how that works exactly. maybe a checkbox could be added to
     # merge anyway
-    if exists(f'{output_path}/{_id}.png'):
+    if output_path is None or exists(f'{output_path}/{_id}.png'):
         pass
     else:
         # unfortunately we don't get to return the title like this since we
@@ -260,4 +283,4 @@ async def hungry(request):
 async def favicon(request):
     return await r.file('static/favicon.ico')
 
-app.run('127.0.0.1', 2965)
+app.run('0.0.0.0', 2965)

@@ -38,4 +38,4 @@ The route that the webserver will serve files on. E.g., if it is `coolhorsepics`
 
 #### `path`
 
-An absolute or relative path on your filesystem to where Realmerge should save merged files. Defauls to `rendered` in the current working directory.
+An absolute or relative path on your filesystem to where Realmerge should save merged files. Defauls to `rendered` in the current working directory. Set to `null` to disable saving to the local disk and instead serve images as base64 data. If Realmerge fails to save locally due to a permissions error, this will be done anyway, even if the value is not `null`.
