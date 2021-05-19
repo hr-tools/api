@@ -48,7 +48,7 @@ input {font-family: roboto, sans-serif;}
 }
 .footer-credit {
     bottom: 0;
-    position: absolute;
+    position: fixed;
     font-size: 12px;
     text-align: left;
     color: #696969; /* lol */
