@@ -178,6 +178,13 @@ def pil_process(horse_id, bytefiles):
     web_route = f'/{output_route}/{horse_id}.png'
     return web_route
 
+@app.options('/api/merge')
+async def cors_headers_return(request):
+    return r.empty(headers={
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Origin': '*'
+    })
+
 @app.post('/api/merge')
 async def page_process(request):
     payload = request.json
@@ -217,14 +224,14 @@ async def page_process(request):
             'name': None,
             'url': f'/{output_route}/{_id}.png',
             'original_url': url
-        }, status=200)
+        }, status=200, headers={'Access-Control-Allow-Origin': '*'})
 
     authconfig = config['authentication'].get(tld)
     if not authconfig:
         return r.json({
             'message': 'This server is not supported by this instance of '
                 'Realmerge, or it has not been configured properly.'
-        }, status=500)
+        }, status=500, headers={'Access-Control-Allow-Origin': '*'})
     if authconfig.get('cookie'):
         cookie = authconfig.get('cookie')
     else:
@@ -242,7 +249,10 @@ async def page_process(request):
         page_title, urls = await loop.run_in_executor(None, get_page_image_urls, html_text)
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to get image URLs.'}, status=500)
+        return r.json({'message': 'Failed to get image URLs.'},
+            status=500,
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
 
     bytefiles = []
     for img_url in urls:
@@ -254,7 +264,10 @@ async def page_process(request):
         path = await loop.run_in_executor(None, pil_process, _id, bytefiles)
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to merge images.'}, status=500)
+        return r.json({'message': 'Failed to merge images.'},
+            status=500,
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
 
     try:
         horse_name = re.sub(r' - Horse Reality$', '', str(page_title))
@@ -263,12 +276,16 @@ async def page_process(request):
     except:
         horse_name = page_title
 
-    return r.json({
-        'message': 'Success.',
-        'name': sanitize_name(horse_name),
-        'url': path,
-        'original_url': url
-    }, status=201)
+    return r.json(
+        {
+            'message': 'Success.',
+            'name': sanitize_name(horse_name),
+            'url': path,
+            'original_url': url
+        },
+        status=201,
+        headers={'Access-Control-Allow-Origin': '*'}
+    )
 
 @app.get('/')
 async def index(request):
@@ -282,5 +299,13 @@ async def hungry(request):
 @app.get('/favicon.ico')
 async def favicon(request):
     return await r.file('static/favicon.ico')
+
+@app.get('/firefox')
+async def ext_firefox(request):
+    return r.redirect('https://addons.mozilla.org/en-US/firefox/addon/realmerge')
+
+@app.get('/chrome')
+async def ext_chrome(request):
+    return r.redirect('https://chrome.google.com/webstore/detail/realmerge/bbhiminbhbaknnpiabajnmjjedncpmpe')
 
 app.run('0.0.0.0', 2965)
