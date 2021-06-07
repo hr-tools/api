@@ -302,6 +302,11 @@ async def index(request):
     index_file = open('index.html').read()
     return r.html(index_file)
 
+@app.get('/changelog')
+async def changelog(request):
+    index_file = open('changelog.html').read()
+    return r.html(index_file)
+
 @app.post('/api/eat')
 async def hungry(request):
     return r.empty()
