@@ -60,12 +60,16 @@
                 }
             }
 
-            document.getElementById('merged-image').src = data.url;
+            document.getElementById('merged-image').src = data.horse_url;
             if (!data.name) {
                 document.getElementById('merged-image-title').innerHTML = 'Merged Image';
             } else {
                 document.getElementById('merged-image-title').innerHTML = data.name;
                 namecache[data.original_url] = data.name
+            }
+            if (data.foal_url != undefined) {
+                document.getElementById('merged-image-foal').src = data.foal_url;
+                document.getElementById('merged-image-box-foal').style.display = 'block';
             }
         }
     </script>
@@ -86,6 +90,10 @@
 <div class="box" id="merged-image-box" style="padding-bottom:20px;display:none">
     <h3 class="box-title" id="merged-image-title"></h3>
     <img id="merged-image" src="">
+</div>
+<div class="box" id="merged-image-box-foal" style="padding-bottom:20px;display:none">
+    <h3 class="box-title">Foal</h3>
+    <img id="merged-image-foal" src="">
 </div>
 <div class="footer-credit">
     <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>

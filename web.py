@@ -116,22 +116,28 @@ def get_page_image_urls(html_text):
     title = soup.title.string
 
     divs = soup.find_all('div', class_='horse_photo')
-    # apparently when there is both a foal and a mare, there are two of these
-    # divs, one with a 'mom' class. BS4 finds the 'mom' class first due to how
-    # they're structured in the page data
-
-    # in the future, Realmerge will probably attempt to pick them both out and
-    # return both images separately
 
     if not divs:
-        return None, []
+        return None, {}
 
-    horse_pics_div = divs[0]
-    urls = re.findall(r'\/upload\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z0-9]+\.png', str(horse_pics_div))
-    # this is sort of hacky but i'd rather not figure out how to use
-    # `.children` properly
+    # when there is both a foal and a mare, there are two 'horse_photo'
+    # elements - one with a 'mom' class on the parent 'horse_photocon' element.
+    # we deal with this in the following loop:
+    layers = {}
+    for div in divs:
+        urls = re.findall(r'\/upload\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z0-9]+\.png', str(div))
+        # this is sort of hacky but i'd rather not figure out how to use
+        # `.children` properly
 
-    return title, urls
+        parent_classes = div.parent['class']
+        if 'foal' in parent_classes:
+            layers['foal'] = urls
+        else:
+            # we could use 'mom' here but that just complicates dealing with
+            # horses that do not have children on their page
+            layers['horse'] = urls
+
+    return title, layers
 
 def pil_process(horse_id, bytefiles):
     new_image = None
@@ -222,7 +228,7 @@ async def page_process(request):
         return r.json({
             'message': 'Success (already merged).',
             'name': None,
-            'url': f'/{output_route}/{_id}.png',
+            'horse_url': f'/{output_route}/{_id}.png',
             'original_url': url
         }, status=200, headers={'Access-Control-Allow-Origin': '*'})
 
@@ -246,7 +252,7 @@ async def page_process(request):
 
     loop = asyncio.get_event_loop()
     try:
-        page_title, urls = await loop.run_in_executor(None, get_page_image_urls, html_text)
+        page_title, layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
     except:
         traceback.print_exc()
         return r.json({'message': 'Failed to get image URLs.'},
@@ -254,20 +260,24 @@ async def page_process(request):
             headers={'Access-Control-Allow-Origin': '*'}
         )
 
-    bytefiles = []
-    for img_url in urls:
-        img_response = await app.session.get(f'https://www.horsereality.{tld}{img_url}')
-        read = await img_response.read()
-        bytefiles.append(read)
+    bytefiles = {}
+    for key, urls in layers.items():
+        bytefiles[key] = []
+        for img_url in urls:
+            img_response = await app.session.get(f'https://www.horsereality.{tld}{img_url}')
+            read = await img_response.read()
+            bytefiles[key].append(read)
 
-    try:
-        path = await loop.run_in_executor(None, pil_process, _id, bytefiles)
-    except:
-        traceback.print_exc()
-        return r.json({'message': 'Failed to merge images.'},
-            status=500,
-            headers={'Access-Control-Allow-Origin': '*'}
-        )
+    paths = {}
+    for key, bytefiles in bytefiles.items():
+        try:
+            paths[f'{key}_url'] = await loop.run_in_executor(None, pil_process, _id, bytefiles)
+        except:
+            traceback.print_exc()
+            return r.json({'message': 'Failed to merge images.'},
+                status=500,
+                headers={'Access-Control-Allow-Origin': '*'}
+            )
 
     try:
         horse_name = re.sub(r' - Horse Reality$', '', str(page_title))
@@ -280,8 +290,8 @@ async def page_process(request):
         {
             'message': 'Success.',
             'name': sanitize_name(horse_name),
-            'url': path,
-            'original_url': url
+            'original_url': url,
+            **paths
         },
         status=201,
         headers={'Access-Control-Allow-Origin': '*'}
