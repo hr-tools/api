@@ -24,6 +24,9 @@ output_config = config.get('output', {})
 output_route = output_config.get('name', 'rendered')
 output_path = output_config.get('path', 'rendered')
 
+run_address = config.get('address', 'localhost')
+run_port = config.get('port', 2965)
+
 app = sanic.Sanic(__name__)
 app.static(f'/static', 'static')
 if output_path is not None:
@@ -153,6 +156,11 @@ def pil_process(horse_id, bytefiles):
             # Pillow to complain. luckily we can just resize to the previous
             # image's size without really any issues
             image = image.resize(new_image.size)
+
+        if image.mode != 'RGBA':
+            # sometimes images are opened in LA mode, which causes them
+            # to not be merge-able
+            image = image.convert('RGBA')
 
         new_image = Image.alpha_composite(new_image, image)
 
@@ -286,6 +294,9 @@ async def page_process(request):
     except:
         horse_name = page_title
 
+    # temporary hotfix backwards compat for the extensions
+    paths['url'] = paths.get('foal_url', paths.get('horse_url'))
+
     return r.json(
         {
             'message': 'Success.',
@@ -323,4 +334,4 @@ async def ext_firefox(request):
 async def ext_chrome(request):
     return r.redirect('https://chrome.google.com/webstore/detail/realmerge/bbhiminbhbaknnpiabajnmjjedncpmpe')
 
-app.run('0.0.0.0', 2965)
+app.run(run_address, run_port)

@@ -12,6 +12,13 @@
 </head>
 <body>
 <div class="box">
+    <h3 class="box-title">v1.2 - June 8, 2021</h3>
+    <ul>
+        <li>Fixed edge case where sometimes some layers were opened in <a href="https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes">LA</a> mode instead of RGBA, causing the tool to fail.</li>
+        <li>Moved both footer boxes to the left side so that they would not overlap on mobile devices.</li>
+    </ul>
+</div>
+<div class="box">
     <h3 class="box-title">v1.1 - June 6, 2021</h3>
     <p>Added support for horse pages with both a foal and a mare.</p>
 </div>
@@ -19,16 +26,18 @@
     <h3 class="box-title">v1.0 - May 20, 2021</h3>
     <p>Initial 'final' build.</p>
 </div>
+<div class="footer-credit-container">
 <div class="footer-credit">
     <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>
     <h5 style="margin:0">🔗 Source on <a href="https://github.com/shayypy/realmerge" target="_blank">GitHub</a>. Realmerge © shay (shayypy)</h5>
     <h5 style="margin:0">🔗 Main page <a href="/">right here</a></h5>
 </div>
-<div class="footer-credit" id="extension-ad-chromium" style="right:20px;display:none">
+<div class="footer-credit" id="extension-ad-chromium" style="display:none">
     <h5 style="margin:0">Realmerge has a browser extension! <a href="/chrome" target="_blank">You can add it here :)</a></h5>
 </div>
-<div class="footer-credit" id="extension-ad-firefox" style="right:20px;display:none">
+<div class="footer-credit" id="extension-ad-firefox" style="display:none">
     <h5 style="margin:0">Realmerge has a browser extension! <a href="/firefox" target="_blank">You can add it here :)</a></h5>
+</div>
 </div>
 <script>
     if (window.chrome) {

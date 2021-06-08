@@ -1,4 +1,6 @@
 {
+    "address": "localhost",
+    "port": 2965,
     "authentication": {
         "com": {
             "email": "email@horsereality.com",
@@ -10,7 +12,7 @@
         }
     },
     "output": {
-        "name": "coolhorsepics", // cooldomain.com/coolhorsepics/...
-        "path": "rendered" // /home/shay/realmerge/rendered/...
+        "name": "coolhorsepics",  // cooldomain.com/coolhorsepics/...
+        "path": "rendered"  // /home/shay/realmerge/rendered/...
     }
 }

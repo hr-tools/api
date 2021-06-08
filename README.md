@@ -22,6 +22,10 @@ A live instance can be found at [realmerge.shay.cat](https://realmerge.shay.cat)
 
 A configuration file named `config.json` is required to be in the working directory. An example of such a file can be found at [`config-example.json`](https://github.com/shayypy/realmerge/blob/main/config-example.json).
 
+### `address` and `port` (optional)
+
+Specify the `address:port` that the webserver runs on. Defaults to `localhost:2965`.
+
 ### `authentication`
 
 Horse pages cannot be viewed without being logged in, so we use cookies to tell Horse Reality that we are indeed authenticated. Because Horse Reality runs two servers (English and Dutch), each with separate account systems, the config file may define credentials for the English server (`.com`) and the Dutch server (`.nl`) separately.

@@ -46,16 +46,19 @@ input {font-family: roboto, sans-serif;}
     background-color: #C48900;
     transition: background-color 0.2s;
 }
-.footer-credit {
+.footer-credit-container {
     bottom: 0;
     position: fixed;
+    margin-bottom: 14px;
+}
+.footer-credit {
     font-size: 12px;
     text-align: left;
     color: #696969; /* lol */
     background-color: white;
     border-radius: 4px;
     padding: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 6px;
     box-shadow: #e1e1e1 6px 6px 15px;
 }
 a {color: rgb(74, 122, 155); text-decoration: none}
