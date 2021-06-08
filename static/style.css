@@ -64,4 +64,4 @@ input {font-family: roboto, sans-serif;}
 a {color: rgb(74, 122, 155); text-decoration: none}
 a:hover {color: #183448}
 #merged-image {max-width: 100%}
-.box>p {margin: 0}
+.box>p, .box>ul, .box>ol {margin: 0}
