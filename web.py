@@ -1,326 +1,49 @@
-import aiohttp
-import asyncio
-import base64
-from bs4 import BeautifulSoup
-from io import BytesIO
 import json
-from os.path import exists
-import re
-from PIL import Image
+import traceback
+
+import aiohttp
 import sanic
 from sanic import response as r
-import traceback
-from xml.sax.saxutils import escape
+
+from api import api
 
 config = json.load(open('config.json'))
-if not config.get('authentication'):
-    msg = 'You must have authentication values.'
-    raise ValueError(msg)
-if not config['authentication'].get('com') and not config['authentication'].get('nl'):
-    msg = 'You must have authentication data for .com, .nl, or both.'
-    raise ValueError(msg)
 
-output_config = config.get('output', {})
-output_route = output_config.get('name', 'rendered')
-output_path = output_config.get('path', 'rendered')
-
-run_address = config.get('address', 'localhost')
-run_port = config.get('port', 2965)
-
-app = sanic.Sanic(__name__)
+app = sanic.Sanic('Realmerge')
 app.static(f'/static', 'static')
+app.blueprint(api)
+
+# horsereality.com/rules section 10 seems to allow saving artwork like this
+output_config = config.get('output', {})
+
+output_path = output_config.get('path', 'rendered')
+output_route = output_config.get('name', 'rendered')
 if output_path is not None:
     app.static(f'/{output_route}', output_path)
-    # horsereality.com/rules section 10 seems to allow saving artwork like this
+
+output_route_multi = output_config.get('name-multi', 'rendered-multi')
+output_path_multi = output_config.get('path-multi', 'rendered-multi')
+if output_path_multi is not None:
+    app.static(f'/{output_route_multi}', output_path_multi)
 
 @app.listener('after_server_start')
 async def init_aiohttp_session(app, loop):
     app.session = aiohttp.ClientSession()
 
-html_escape_table = {
-    '&': '&amp;',
-    '"': '&quot;',
-    "'": '&apos;',
-    '>': '&gt;',
-    '<': '&lt;',
-    '{': '&#123;',
-    '}': '&#125;'
-}
-
-def sanitize_name(text):
-    # we don't really want people to be able to name
-    # their horses arbitrary html
-    return escape(text, html_escape_table)
-
-def sneak_token(html_text):
-    soup = BeautifulSoup(html_text, 'html.parser')
-    inputs = soup.find_all('input', attrs={'name': '_token', 'type': 'hidden'})
-    try:
-        token_input = inputs[0]
-        token = token_input['value']
-    except (IndexError, KeyError):
-        msg = 'Couldn\'t fetch the required information for authenticating with Horse Reality.'
-        raise Exception(msg)
-    else:
-        return token
-
-async def get_laravel_csrf_token(tld):
-    # HR uses the laravel framework and generates a unique token for
-    # Cross-Site Request Forgery (CSRF) protection. this makes logging in a
-    # bit more tedious for us but luckily it can be abstracted away by simply
-    # further pretending we're a normal user; we GET v2 /login first and sneak
-    # the token from the login form
-    response = await app.session.get(f'https://v2.horsereality.{tld}/login')
-    html_text = await response.text()
-    loop = asyncio.get_event_loop()
-    token = await loop.run_in_executor(None, sneak_token, html_text)
-    return token
-    # btw HR has very pretty error pages. big ups @ design team
-
-async def relogin(tld):
-    token = await get_laravel_csrf_token(tld)
-    login_response = await app.session.post(
-        f'https://v2.horsereality.{tld}/login',
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        data={
-            '_token': token,
-            'email': config['authentication'][tld]['email'],
-            'password': config['authentication'][tld]['password']
-        },
-        allow_redirects=False
-    )
-    if login_response.status != 302:
-        # when redirecting is enabled, this will be 200 because the
-        # client lands on /horses, but this is not what we want, because
-        # then the location header is not present. we could also check if
-        # the current page is still /login, but assuming standard HTTP
-        # practices are followed, we shouldn't have to worry about the
-        # status code changing suddenly
-        msg = 'Invalid credentials for the .%s server.' % tld
-        raise ValueError(msg)
-
-    get_cookie_url = login_response.headers['location']
-    cookie_response = await app.session.get(get_cookie_url, allow_redirects=False)
-    # www.horsereality.tld/?v2_auth_token=xxx
-
-    cookie = cookie_response.cookies['horsereality']
-    # thankfully HR returns the cookie value we need
-    # here so we can skip a lot of annoying decoding stuff
-
-    config['authentication'][tld]['cookie'] = cookie.value
-    # Morsels should have an `.expires` but i couldn't get that to work
-    # properly (aka: i'm stupid) so we just don't deal with it
-
-    json.dump(config, open('config.json', 'w'))
-    return cookie.value
-
-def get_page_image_urls(html_text):
-    soup = BeautifulSoup(html_text, 'html.parser')
-    title = soup.title.string
-
-    divs = soup.find_all('div', class_='horse_photo')
-
-    if not divs:
-        return None, {}
-
-    # when there is both a foal and a mare, there are two 'horse_photo'
-    # elements - one with a 'mom' class on the parent 'horse_photocon' element.
-    # we deal with this in the following loop:
-    layers = {}
-    for div in divs:
-        urls = re.findall(r'\/upload\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z0-9]+\.png', str(div))
-        # this is sort of hacky but i'd rather not figure out how to use
-        # `.children` properly
-
-        parent_classes = div.parent['class']
-        if 'foal' in parent_classes:
-            layers['foal'] = urls
-        else:
-            # we could use 'mom' here but that just complicates dealing with
-            # horses that do not have children on their page
-            layers['horse'] = urls
-
-    return title, layers
-
-def pil_process(horse_id, bytefiles):
-    new_image = None
-    for file in bytefiles:
-        image = Image.open(BytesIO(file))
-        if new_image is None:
-            # dynamically create a new image per horse because each horse's
-            # resolution is apparently just a little different
-            new_image = Image.new('RGBA', image.size)
-
-        if new_image.size != image.size:
-            # sometimes images will not be the same resolution, which causes
-            # Pillow to complain. luckily we can just resize to the previous
-            # image's size without really any issues
-            image = image.resize(new_image.size)
-
-        if image.mode != 'RGBA':
-            # sometimes images are opened in LA mode, which causes them
-            # to not be merge-able
-            image = image.convert('RGBA')
-
-        new_image = Image.alpha_composite(new_image, image)
-
-    if new_image is None:
-        msg = 'No images.'
-        raise ValueError(msg)
-
-    def as_base64_data():
-        bio = BytesIO()
-        new_image.save(bio, format='PNG')
-        b64_str = base64.b64encode(bio.getvalue())
-        data_str_bytes = bytes(f'data:image/png;base64,', encoding='utf-8') + b64_str
-        data_str = data_str_bytes.decode(encoding='utf-8')
-        return data_str
-
-    if output_path is None:
-        # this instance's config said not to save images locally
-        return as_base64_data()
-
-    try:
-        local_route = f'{output_path}/{horse_id}.png'
-        new_image.save(local_route)
-    except PermissionError:
-        # couldn't save to local path (fix ur perms!), return as b64 anyway
-        # this is sort of implicit but I hope most people running this app will
-        # read the README and figure out the problem if they don't want this
-        return as_base64_data()
-
-    web_route = f'/{output_route}/{horse_id}.png'
-    return web_route
-
-@app.options('/api/merge')
-async def cors_headers_return(request):
-    return r.empty(headers={
-        'Access-Control-Allow-Headers': '*',
-        'Access-Control-Allow-Origin': '*'
-    })
-
-@app.post('/api/merge')
-async def page_process(request):
-    payload = request.json
-    if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400)
-
-    url = payload.get('url')
-    if not url:
-        return r.json({'message': 'Invalid request.'}, status=400)
-
-    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{3,10})\/', url)
-    # we require a trailing slash here because without it HR will redirect us
-    # infinity times between v2 and www. this has been reported to deloryan
-
-    # it's a bit of a lazy solution (a slash could be appended systematically)
-    # but hey whatever
-
-    if not match:
-        return r.json({'message': 'Invalid URL.'}, status=400)
-
-    _id = match.group(3)
-    tld = match.group(2)
-
-    # check if we've already merged this horse
-    # this might cause issues if the same horse ever changes appearance,
-    # i'm not sure how that works exactly. maybe a checkbox could be added to
-    # merge anyway
-    if output_path is None or exists(f'{output_path}/{_id}.png'):
-        pass
-    else:
-        # unfortunately we don't get to return the title like this since we
-        # never actually fetch the page, but it's just flair anyway. you could
-        # parse it from the URL but that would be spotty at best since it's
-        # not actually required
-        return r.json({
-            'message': 'Success (already merged).',
-            'name': None,
-            'horse_url': f'/{output_route}/{_id}.png',
-            'original_url': url
-        }, status=200, headers={'Access-Control-Allow-Origin': '*'})
-
-    authconfig = config['authentication'].get(tld)
-    if not authconfig:
-        return r.json({
-            'message': 'This server is not supported by this instance of '
-                'Realmerge, or it has not been configured properly.'
-        }, status=500, headers={'Access-Control-Allow-Origin': '*'})
-    if authconfig.get('cookie'):
-        cookie = authconfig.get('cookie')
-    else:
-        cookie = await relogin(tld)
-
-    page_response = await app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
-    if page_response.status != 200:
-        cookie = await relogin(tld)
-        page_response = await app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
-
-    html_text = await page_response.text()
-
-    loop = asyncio.get_event_loop()
-    try:
-        page_title, layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
-    except:
-        traceback.print_exc()
-        return r.json({'message': 'Failed to get image URLs.'},
-            status=500,
-            headers={'Access-Control-Allow-Origin': '*'}
-        )
-
-    bytefiles = {}
-    for key, urls in layers.items():
-        bytefiles[key] = []
-        for img_url in urls:
-            img_response = await app.session.get(f'https://www.horsereality.{tld}{img_url}')
-            read = await img_response.read()
-            bytefiles[key].append(read)
-
-    paths = {}
-    for key, bytefiles in bytefiles.items():
-        try:
-            paths[f'{key}_url'] = await loop.run_in_executor(None, pil_process, _id, bytefiles)
-        except:
-            traceback.print_exc()
-            return r.json({'message': 'Failed to merge images.'},
-                status=500,
-                headers={'Access-Control-Allow-Origin': '*'}
-            )
-
-    try:
-        horse_name = re.sub(r' - Horse Reality$', '', str(page_title))
-        # HR oh-so-conveniently provides the horse's name in the title so for
-        # a little flair we return it with the image
-    except:
-        horse_name = page_title
-
-    # temporary hotfix backwards compat for the extensions
-    paths['url'] = paths.get('foal_url', paths.get('horse_url'))
-
-    return r.json(
-        {
-            'message': 'Success.',
-            'name': sanitize_name(horse_name),
-            'original_url': url,
-            **paths
-        },
-        status=201,
-        headers={'Access-Control-Allow-Origin': '*'}
-    )
-
 @app.get('/')
 async def index(request):
-    index_file = open('index.html').read()
-    return r.html(index_file)
+    contents = open('index.html').read()
+    return r.html(contents)
 
 @app.get('/changelog')
 async def changelog(request):
-    index_file = open('changelog.html').read()
-    return r.html(index_file)
+    contents = open('changelog.html').read()
+    return r.html(contents)
 
-@app.post('/api/eat')
-async def hungry(request):
-    return r.empty()
+@app.get('/multi')
+async def multi(request):
+    contents = open('multi.html').read()
+    return r.html(contents)
 
 @app.get('/favicon.ico')
 async def favicon(request):
@@ -334,4 +57,46 @@ async def ext_firefox(request):
 async def ext_chrome(request):
     return r.redirect('https://chrome.google.com/webstore/detail/realmerge/bbhiminbhbaknnpiabajnmjjedncpmpe')
 
+# this dict intentionally skips a number of error codes that Realmerge would
+# never raise
+status_code_dict = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    405: 'Method Not Allowed',
+    408: 'Request Timeout',
+    413: 'Payload Too Large',
+    429: 'Too Many Requests',
+    500: 'Internal Server Error',
+    501: 'Not Implemented',
+    502: 'Bad Gateway',
+    503: 'Service Unavailable',
+    504: 'Gateway Timeout'
+}
+
+@app.exception(Exception)
+async def error_handler(request, exception):
+    status_code = getattr(exception, 'status_code', 500)
+    error_name = status_code_dict.get(status_code, 'Internal Server Error')
+
+    if status_code == 404:
+        if not request.url.islower():
+            return r.redirect(request.url.lower())
+
+    if status_code == 500:
+        traceback.print_exc()
+
+    if '/api/' in request.url:
+        return r.json(
+            {'status': status_code, 'message': error_name},
+            status=status_code
+        )
+
+    contents = open('error.html').read()
+    contents = contents.format(error_code=status_code, error_name=error_name)
+    return r.html(contents, status=status_code)
+
+run_address = config.get('address', 'localhost')
+run_port = config.get('port', 2965)
 app.run(run_address, run_port)

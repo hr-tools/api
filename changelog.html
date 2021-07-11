@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Realmerge - Changelog</title>
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta property="og:title" content="Realmerge Changelog"/>
     <meta property="og:description" content="Simple tool that layers files from the Horse Reality webgame."/>
@@ -9,28 +10,79 @@
     <meta property="twitter:card" content="summary_large_image"/>
     <meta name="theme-color" content="#081b28"/>
     <link rel="stylesheet" href="/static/style.css"/>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="/static/main.js"></script>
+    <script src="/static/theme.js"></script>
+    <script src="/static/settings.js"></script>
 </head>
 <body>
-<div class="box">
+<div id="settings-modal-container"></div>
+<div class="box changelog">
+    <h3 class="box-title">v1.3 - July 11, 2021</h3>
+    <h4>Major:</h4>
+    <ul>
+        <li>Added a new page for merging multiple different horses together ("Multi Mode")</li>
+    </ul>
+    <h4>Minor/QoL:</h4>
+    <ul>
+        <li>Changed favicon from Horse Reality's logo to the R</li>
+        <li>Added an optional dark mode</li>
+        <li>Added proper error pages (<a href="/this-page-does-not-exist" target="_blank">try it out!</a>)</li>
+        <li>Added a <a href="javascript:spawnSettings()">settings menu</a> to reduce button clutter</li>
+        <li>Added a <a href="javascript:toggleNav()">navigation dropup</a></li>
+        <li>Fixed weird escaping on some characters in horse names</li>
+        <li>Changed minimum lifenumber length to 1</li>
+    </ul>
+    <h4>Multi Mode notes:</h4>
+    <ul>
+        <li>Select layers from top to bottom for them to display in the correct order</li>
+        <li>You can add a maximum of 6 horses at a time</li>
+        <li>To get an individual layer PNG, check the box of the layer you want. Right-click or long-press the preview image to open the layer's URL.</li>
+    </ul>
+</div>
+<div class="box changelog">
+    <h3 class="box-title">v1.2.1 - July 3, 2021</h3>
+    <ul>
+        <li>Added Horse Reality watermark to all merged images for additional attribution.</li>
+    </ul>
+</div>
+<div class="box changelog">
     <h3 class="box-title">v1.2 - June 8, 2021</h3>
     <ul>
         <li>Fixed edge case where sometimes some layers were opened in <a href="https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes">LA</a> mode instead of RGBA, causing the tool to fail.</li>
         <li>Moved both footer boxes to the left side so that they would not overlap on mobile devices.</li>
     </ul>
 </div>
-<div class="box">
+<div class="box changelog">
     <h3 class="box-title">v1.1 - June 6, 2021</h3>
-    <p>Added support for horse pages with both a foal and a mare.</p>
+    <ul>
+        <li>Added support for horse pages with both a foal and a mare.</li>
+    </ul>
 </div>
-<div class="box">
+<div class="box changelog">
     <h3 class="box-title">v1.0 - May 20, 2021</h3>
-    <p>Initial 'final' build.</p>
+    <ul>
+        <li>Initial 'final' build.</li>
+    </ul>
 </div>
 <div class="footer-credit-container">
+<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;">
+    <button onclick="spawnSettings()">🔧 Settings</button>
+    <div class="new-badge">NEW!</div>
+</div>
+<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;margin-left: 110px;">
+    <div id="nav-drop-up">
+        <div onclick="toggleNav()"><a href="/">🐴 Main Page</a></div>
+        <div onclick="toggleNav()"><a href="/multi">🔗 Multi Mode</a></div>
+        <div onclick="toggleNav()"><a href="/changelog">📃 Changelog</a></div>
+    </div>
+    <button onclick="toggleNav()">📜 Navigation</button>
+    <div class="new-badge">NEW!</div>
+</div>
 <div class="footer-credit">
     <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>
     <h5 style="margin:0">🔗 Source on <a href="https://github.com/shayypy/realmerge" target="_blank">GitHub</a>. Realmerge © shay (shayypy)</h5>
-    <h5 style="margin:0">🔗 Main page <a href="/">right here</a></h5>
 </div>
 <div class="footer-credit" id="extension-ad-chromium" style="display:none">
     <h5 style="margin:0">Realmerge has a browser extension! <a href="/chrome" target="_blank">You can add it here :)</a></h5>
@@ -42,7 +94,7 @@
 <script>
     if (window.chrome) {
         document.getElementById('extension-ad-chromium').style.display = 'block';
-    } else if (navigator.userAgent.indexOf("Firefox")) {
+    } else if (navigator.userAgent.indexOf("Firefox") >= 0) {
         document.getElementById('extension-ad-firefox').style.display = 'block';
     }
 </script>

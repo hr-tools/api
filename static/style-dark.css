@@ -1,0 +1,21 @@
+:root {
+    --bg: #161819;
+}
+body {color: #e1e2e6}
+.box {border-color: black; background-color: #36393f}
+.footer-credit {background-color: #2d2f35; color: #b4b6bb}
+.box, .footer-credit {box-shadow: #0d0f13 8px 8px 15px}
+.check-horse {background-color: #2a2c31}
+#horseurl {background-color: #2d2f35; border-color: black; color: #75787d}
+label, li, p {color: #e1e2e6}
+button {background-color: #619bc3}
+button:hover {background-color: #3B7EAC}
+a {color: #619bc3}
+a:hover {color: #3B7EAC}
+#error-separator {background-color: #343435}
+#theme-switch-button {background-color: #ffa200}
+#theme-switch-button:hover {background-color: #C48900}
+.modal {border-color: #24262b}
+.modal-footnote {color: #adafb4}
+#nav-drop-up {background-color: #36393f}
+#nav-drop-up>div:hover {background-color: #2F3237}
