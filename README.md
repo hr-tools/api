@@ -51,7 +51,3 @@ An absolute or relative path on your filesystem to where Realmerge should save m
 #### `path-multi`
 
 Same as `path`, but for [Multi mode](https://realmerge.shay.cat/multi) renders.
-
-### `support`
-
-An HTML string indicating where users of this instance should contact you for support. You should generally only set this if you have modified your Realmerge instance.
