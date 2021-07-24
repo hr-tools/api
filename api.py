@@ -261,12 +261,16 @@ async def merge_single(request):
     # temporary hotfix backwards compat for the extensions
     paths['url'] = paths.get('foal_url', paths.get('horse_url'))
 
+    if payload.get('return_layer_urls'):
+        layer_urls = [url for url in [urls for urls in layers.values()]]
+    else:
+        layer_urls = []
     return r.json(
         {
             'message': 'Success.',
             'name': horse_name,
             'original_url': url,
-            'layer_urls': [] if not payload.get('return_layer_urls') else list(layers.values())[0],
+            'layer_urls': layer_urls,
             **paths
         },
         status=201,
