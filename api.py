@@ -153,7 +153,7 @@ def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True, left_wa
 @api.options('/merge')
 async def cors_preflight_merge(request):
     return r.empty(headers={
-        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Origin': '*'
     })
 
@@ -266,6 +266,7 @@ async def merge_single(request):
             'message': 'Success.',
             'name': horse_name,
             'original_url': url,
+            'layer_urls': [] if not payload.get('return_layer_urls') else list(layers.values())[0],
             **paths
         },
         status=201,
