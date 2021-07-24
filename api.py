@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import datetime
 from functools import partial
 from io import BytesIO
 import json
@@ -7,11 +8,14 @@ import os
 import random
 import re
 import traceback
+from urllib.parse import urlunparse
 
 from bs4 import BeautifulSoup
 from PIL import Image
 import sanic
 from sanic import response as r
+
+from auth import relogin
 
 api = sanic.Blueprint('API', url_prefix='/api')
 
@@ -28,68 +32,6 @@ output_route = output_config.get('name', 'rendered')
 output_route_multi = output_config.get('name-multi', 'rendered-multi')
 output_path = output_config.get('path', 'rendered')
 output_path_multi = output_config.get('path-multi', 'rendered-multi')
-
-def sneak_token(html_text):
-    soup = BeautifulSoup(html_text, 'html.parser')
-    inputs = soup.find_all('input', attrs={'name': '_token', 'type': 'hidden'})
-    try:
-        token_input = inputs[0]
-        token = token_input['value']
-    except (IndexError, KeyError):
-        msg = 'Couldn\'t fetch the required information for authenticating with Horse Reality.'
-        raise Exception(msg)
-    else:
-        return token
-
-async def get_laravel_csrf_token(tld, session):
-    # HR uses the laravel framework and generates a unique token for
-    # Cross-Site Request Forgery (CSRF) protection. this makes logging in a
-    # bit more tedious for us but luckily it can be abstracted away by simply
-    # further pretending we're a normal user; we GET v2 /login first and sneak
-    # the token from the login form
-    response = await session.get(f'https://v2.horsereality.{tld}/login')
-    html_text = await response.text()
-    loop = asyncio.get_event_loop()
-    token = await loop.run_in_executor(None, sneak_token, html_text)
-    return token
-    # btw HR has very pretty error pages. big ups @ design team
-
-async def relogin(tld, session):
-    token = await get_laravel_csrf_token(tld, session)
-    login_response = await session.post(
-        f'https://v2.horsereality.{tld}/login',
-        headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        data={
-            '_token': token,
-            'email': config['authentication'][tld]['email'],
-            'password': config['authentication'][tld]['password']
-        },
-        allow_redirects=False
-    )
-    if login_response.status != 302:
-        # when redirecting is enabled, this will be 200 because the
-        # client lands on /horses, but this is not what we want, because
-        # then the location header is not present. we could also check if
-        # the current page is still /login, but assuming standard HTTP
-        # practices are followed, we shouldn't have to worry about the
-        # status code changing suddenly
-        msg = 'Invalid credentials for the .%s server.' % tld
-        raise ValueError(msg)
-
-    get_cookie_url = login_response.headers['location']
-    cookie_response = await session.get(get_cookie_url, allow_redirects=False)
-    # www.horsereality.tld/?v2_auth_token=xxx
-
-    cookie = cookie_response.cookies['horsereality']
-    # thankfully HR returns the cookie value we need
-    # here so we can skip a lot of annoying decoding stuff
-
-    config['authentication'][tld]['cookie'] = cookie.value
-    # Morsels should have an `.expires` but i couldn't get that to work
-    # properly (aka: i'm stupid) so we just don't deal with it
-
-    json.dump(config, open('config.json', 'w'))
-    return cookie.value
 
 def dissect_layer_path(path):
     layer_attrs_list = path.split('/')
@@ -130,19 +72,22 @@ def get_page_image_urls(html_text):
 
     return title, layers
 
-def add_horse_reality_logo(image):
-    logo = Image.open('horse-reality-logo-small.png')
+def add_horse_reality_logo(image, *, left=False):
+    logo = Image.open('static/horse-reality-logo-small.png')
 
     original_canvas = Image.new('RGBA', (image.width, image.height + logo.height))
     original_canvas.paste(image, (0, logo.height))
 
     logo_canvas = Image.new('RGBA', original_canvas.size)
-    logo_canvas.paste(logo, (original_canvas.width - logo.width, 0))  # top right
+    if left:
+        logo_canvas.paste(logo, (0, 0))  # top left
+    else:
+        logo_canvas.paste(logo, (original_canvas.width - logo.width, 0))  # top right
 
     new_image = Image.alpha_composite(original_canvas, logo_canvas)
     return new_image
 
-def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True):
+def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True, left_watermark=False):
     new_image = None
     for file in bytefiles:
         image = Image.open(BytesIO(file))
@@ -169,7 +114,7 @@ def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True):
         raise ValueError(msg)
 
     if use_watermark is True:
-        new_image = add_horse_reality_logo(new_image)
+        new_image = add_horse_reality_logo(new_image, left=left_watermark)
 
     def as_base64_data():
         bio = BytesIO()
@@ -283,16 +228,22 @@ async def merge_single(request):
 
     bytefiles = {}
     for key, urls in layers.items():
-        bytefiles[key] = []
+        bytefiles[key] = {'foal': 'foal' in urls[0], 'bytefiles': []}
         for img_url in urls:
             img_response = await request.app.session.get(f'https://www.horsereality.{tld}{img_url}')
             read = await img_response.read()
-            bytefiles[key].append(read)
+            bytefiles[key]['bytefiles'].append(read)
 
     paths = {}
-    for key, bytefiles in bytefiles.items():
+    for key, pair in bytefiles.items():
         try:
-            paths[f'{key}_url'] = await loop.run_in_executor(None, partial(pil_process, _id, bytefiles, use_watermark=payload.get('watermark', True)))
+            paths[f'{key}_url'] = await loop.run_in_executor(None, partial(
+                pil_process,
+                _id,
+                pair['bytefiles'],
+                use_watermark=payload.get('watermark', True),
+                left_watermark=pair.get('foal', False)
+            ))
         except:
             traceback.print_exc()
             return r.json({'message': 'Failed to merge images.'},
@@ -432,7 +383,7 @@ async def merge_multiple(request):
     loop = asyncio.get_event_loop()
     random_id = random.randint(1000000, 9999999)
     try:
-        merged_url = await loop.run_in_executor(None, partial(pil_process, random_id, bytefiles, multi=True, use_watermark=payload.get('watermark', True)))
+        merged_url = await loop.run_in_executor(None, partial(pil_process, random_id, bytefiles, multi=True, use_watermark=payload.get('watermark', True), left_watermark='foals' in urls[0]))
     except:
         traceback.print_exc()
         return r.json({'message': 'Failed to merge images.'}, status=500)
@@ -444,6 +395,49 @@ async def merge_multiple(request):
         },
         status=201
     )
+
+@api.get(r'/multi-share/<share_id:(\d{10})>')
+async def get_share(request, share_id):
+    if not request.app.redis:
+        return r.json({'message': 'This instance of Realmerge does not support the share feature.'}, status=400)
+    
+    key = f'realmerge-multishare-{share_id}'
+    share_data = await request.app.redis.get(key)
+    if share_data is None:
+        return r.json({'message': 'No such shared template exists.'}, status=404)
+
+    try:
+        return r.json(json.loads(share_data))
+    except:
+        return r.json({'message': 'Failed to load template data.'})
+
+@api.post('/multi-share')
+async def share(request):
+    payload = request.json
+    layers_data = payload.get('layers_data')
+    if not request.app.redis:
+        return r.json({'message': 'This instance of Realmerge does not support the share feature.'}, status=400)
+    elif not layers_data or not isinstance(layers_data, list):
+        return r.json({'message': 'Missing, empty, or invalid layers_data.'}, status=400)
+
+    expires_after = 604800  # 1 week
+    expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=expires_after)
+    random_id = random.randint(1000000000, 9999999999)
+    key = f'realmerge-multishare-{random_id}'
+    await request.app.redis.set(key, json.dumps(layers_data))
+    await request.app.redis.expire(key, expires_after)
+    return r.json({
+        'id': random_id,
+        'url': urlunparse((
+            request.headers.get('X-Forwarded-Proto', 'http'),
+            request.headers['Host'],
+            '/multi',
+            None,
+            f'share={random_id}',
+            None
+        )),
+        'expires': int(expires.timestamp())
+    })
 
 @api.post('/eat')
 async def hungry(request):

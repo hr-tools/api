@@ -51,3 +51,7 @@ An absolute or relative path on your filesystem to where Realmerge should save m
 #### `path-multi`
 
 Same as `path`, but for [Multi mode](https://realmerge.shay.cat/multi) renders.
+
+### `redis`
+
+A redis address to store share IDs from the share button on [Multi mode](https://realmerge.shay.cat/multi).

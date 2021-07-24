@@ -10,6 +10,7 @@
     <meta property="twitter:card" content="summary_large_image"/>
     <meta name="theme-color" content="#081b28"/>
     <link rel="stylesheet" href="/static/style.css"/>
+    <link rel="stylesheet" href="" id="theme"/>
     <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
     <script src="/static/main.js"></script>
@@ -17,7 +18,19 @@
     <script src="/static/settings.js"></script>
 </head>
 <body>
-<div id="settings-modal-container"></div>
+<div id="modal-container"></div>
+<div class="box changelog">
+    <h3 class="box-title">v1.4 - July 23, 2021</h3>
+    <h4>Major:</h4>
+    <ul>
+        <li>Multi mode "Share" button</li>
+        <li>Cherry and Rainforest themes</li>
+    </ul>
+    <h4>Minor/QoL:</h4>
+    <ul>
+        <li>Moved watermark to the left of foals</li>
+    </ul>
+</div>
 <div class="box changelog">
     <h3 class="box-title">v1.3 - July 11, 2021</h3>
     <h4>Major:</h4>
@@ -63,22 +76,18 @@
 <div class="box changelog">
     <h3 class="box-title">v1.0 - May 20, 2021</h3>
     <ul>
-        <li>Initial 'final' build.</li>
+        <li>Initial stable build.</li>
     </ul>
 </div>
 <div class="footer-credit-container">
-<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;">
-    <button onclick="spawnSettings()">🔧 Settings</button>
-    <div class="new-badge">NEW!</div>
-</div>
-<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;margin-left: 110px;">
+<button class="footer-item" onclick="spawnSettings()">🔧 Settings</button>
+<div class="footer-item" style="margin-left: 93px;">
     <div id="nav-drop-up">
         <div onclick="toggleNav()"><a href="/">🐴 Main Page</a></div>
         <div onclick="toggleNav()"><a href="/multi">🔗 Multi Mode</a></div>
         <div onclick="toggleNav()"><a href="/changelog">📃 Changelog</a></div>
     </div>
     <button onclick="toggleNav()">📜 Navigation</button>
-    <div class="new-badge">NEW!</div>
 </div>
 <div class="footer-credit">
     <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>

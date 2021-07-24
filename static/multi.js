@@ -1,11 +1,24 @@
 let layerBoxes = [];
+const checkTable = {};
+let layerOrderManagement = [];
+let checkboxCache = null;
+
 class CheckBox extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {checked: false};
+        this.state = {checked: props.enabled || false};
+        checkTable[this.props.key_id] = props.enabled || false;
+        if (props.enabled) layerOrderManagement.push(this.props.key_id);
     }
 
     toggle() {
+        const key_id = this.props.key_id;
+        checkTable[key_id] = !this.state.checked;
+        if (!this.state.checked == true) {
+            layerOrderManagement.push(key_id);
+        } else {
+            layerOrderManagement = layerOrderManagement.filter(function (item) {return item != key_id});
+        }
         this.setState({checked: !this.state.checked});
     }
 
@@ -20,6 +33,7 @@ class CheckBox extends React.Component {
         )
     }
 }
+
 class LayersBox extends React.Component {
     constructor(props) {
         super(props);
@@ -41,12 +55,14 @@ class LayersBox extends React.Component {
     }
 
     render() {
+        this.checkboxes = [];
         for (const obj of this.props.layers) {
             const checkbox = e(CheckBox, obj);
             this.checkboxes.push(checkbox);
             this.checkboxes.push(e('label', {htmlFor: obj.key_id}, e('img', {src: obj.small_url, className: 'check-horse'})));
             this.checkboxes.push(e('br'));
         }
+        checkboxCache = this.checkboxes;
         return e(
             'div',
             {className: 'box layer-column', key: this.props.id},
@@ -58,10 +74,11 @@ class LayersBox extends React.Component {
         );
     }
 }
+
 const previewTitlebar = e('div', {className: 'preview-titlebar'},
     e('h3', {}, 'Preview'),
     e('button', {onClick: () => mergeImage()}, 'Generate'),
-    //e('button', {onClick: () => sharePage()}, 'Share')  // soon!
+    e('button', {id: 'share-button', onClick: () => sharePage()}, 'Share')
 );
 let usedIds = [];
 let previewImages = [];
@@ -83,7 +100,7 @@ function updatePreview(checked, largeImgUrl) {
     }
     const imageElements = [];
     for (const url of previewImages) {
-        imageElements.push(e('img', {src: url}))
+        imageElements.push(e('img', {src: url, onLoad: () => changePreviewHeight()}))
     }
     const fragment = e(React.Fragment, {children: [previewTitlebar].concat(imageElements)});
     ReactDOM.render(fragment, preview_holder);
@@ -93,7 +110,6 @@ function updatePreview(checked, largeImgUrl) {
     } else {
         preview_holder.style.display = 'block';
     }
-    setTimeout(()=>{changePreviewHeight()}, 60)
 }
 
 function addBox(data) {
@@ -102,6 +118,7 @@ function addBox(data) {
     layerBoxes.push(child);
     const fragment = e(React.Fragment, {children: layerBoxes})
     ReactDOM.render(fragment, holder);
+    return child;
 }
 
 async function getLayers() {
@@ -173,3 +190,72 @@ async function mergeImage() {
     }
     showMerged(data.url);
 }
+
+async function sharePage() {
+    if (!layerBoxes) {
+        displayError('Nothing to share.');
+        return
+    }
+    const layersData = [];
+    for (obj of layerBoxes) {
+        for (layer of obj.props.layers) {
+            layer.enabled = checkTable[layer.key_id] || false;
+            if (layerOrderManagement.indexOf(layer.key_id) >= 0) {
+                layer.index = layerOrderManagement.indexOf(layer.key_id);
+            } else {
+                layer.index = null;
+            }
+        }
+        layersData.push(obj.props)
+    }
+    const response = await fetch('/api/multi-share', {
+        method: 'POST',
+        body: JSON.stringify({layers_data: layersData}),
+        headers: {'Content-Type': 'application/json'}
+    });
+    const data = await response.json();
+    if (!response.ok) {
+        displayError(data.message);
+        return
+    } else {
+        document.getElementById('error-box').style.display = 'none';
+    }
+    copyText(data.url);
+    const shareBox = document.querySelector('#share-box');
+    const shareBoxText = document.querySelector('#share-box-text');
+    shareBox.style.display = 'block';
+    shareBoxText.innerHTML = `<strong><a href="${data.url}">${data.url}</a></strong>`;
+}
+
+async function loadCheckShare() {
+    const queryParams = new URLSearchParams(window.location.search);
+    const shareId = queryParams.get('share');
+    if (!shareId) return
+
+    const response = await fetch(`/api/multi-share/${shareId}`, {method: 'GET'});
+    const data = await response.json();
+    if (!response.ok) {
+        displayError(data.message);
+        return
+    } else {
+        document.getElementById('error-box').style.display = 'none';
+    }
+
+    const tempSorting = [];
+    for (const layer_data of data) {
+        addBox(layer_data);
+        usedIds.push(layer_data.id);
+        for (const checkbox of checkboxCache) {
+            if (checkbox.props.enabled) {
+                tempSorting.push(checkbox);
+            }
+        }
+    }
+    checkboxCache = null;
+    tempSorting.sort((first, second) => {return first.props.index - second.props.index})
+    for (const checkbox of tempSorting) {
+        updatePreview(checkbox.props.enabled, checkbox.props.large_url);
+    }
+}
+
+window.onload = loadCheckShare()

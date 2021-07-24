@@ -10,6 +10,7 @@
     <meta property="twitter:card" content="summary_large_image"/>
     <meta name="theme-color" content="#081b28"/>
     <link rel="stylesheet" href="/static/style.css"/>
+    <link rel="stylesheet" href="" id="theme"/>
     <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
     <script src="/static/main.js"></script>
@@ -19,7 +20,7 @@
 </head>
 <body>
 <iframe style="display:none" name="hide-form-req"></iframe>
-<div id="settings-modal-container"></div>
+<div id="modal-container"></div>
 <noscript><div class="box" style="padding-bottom:20px;border-color:red"><h3 class="box-title">Fatal</h3><p>Realmerge requires JavaScript to function properly. Please enable JavaScript for this site in your browser's settings.</p></div></noscript>
 <div class="box">
     <h3 class="box-title">Realmerge (Multi Mode)</h3>
@@ -34,21 +35,18 @@
 </div>
 <div class="box" id="error-box" style="padding-bottom:20px;display:none;border-color:red"><h3 class="box-title">Error</h3><p id="error-message"></p></div>
 <div class="box-holder" id="box-holder"></div>
-<div class="box" id="preview-box" style="padding-bottom:20px;height:498px;display:none;position:relative"><div id="preview-titlebar"><h3>Preview</h3></div></div>
+<div class="box" id="share-box" style="padding-bottom:20px;display:none"><h3 class="box-title">Share URL</h3><p id="share-box-text"></p></div>
+<div class="box" id="preview-box" style="padding-bottom:20px;height:498px;display:none;position:relative"><div class="preview-titlebar"><h3>Preview</h3></div></div>
 <div class="box" id="merged-image-box" style="padding-bottom:20px;display:none"><h3 class="box-title" id="merged-image-title"></h3><img id="merged-image" src=""></div>
 <div class="footer-credit-container">
-<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;">
-    <button onclick="spawnSettings()">🔧 Settings</button>
-    <div class="new-badge">NEW!</div>
-</div>
-<div style="display:inline-flex;left: 0;position: absolute;margin-top: -35px;margin-left: 110px;">
+<button class="footer-item" onclick="spawnSettings()">🔧 Settings</button>
+<div class="footer-item" style="margin-left: 93px;">
     <div id="nav-drop-up">
         <div onclick="toggleNav()"><a href="/">🐴 Main Page</a></div>
         <div onclick="toggleNav()"><a href="/multi">🔗 Multi Mode</a></div>
         <div onclick="toggleNav()"><a href="/changelog">📃 Changelog</a></div>
     </div>
     <button onclick="toggleNav()">📜 Navigation</button>
-    <div class="new-badge">NEW!</div>
 </div>
 <div class="footer-credit">
     <h5 style="margin:0">🔗 All images © <a href="https://deloryan.com" target="_blank">Deloryan B.V.</a></h5>

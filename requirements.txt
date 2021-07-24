@@ -1,4 +1,5 @@
 aiohttp
+aioredis
 beautifulsoup4
 Pillow
 sanic

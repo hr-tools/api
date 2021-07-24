@@ -1,0 +1,24 @@
+/* rainforest theme */
+
+:root {
+    --bg: url(/static/themes/rainforest/background.png) no-repeat #0B2104;
+    --box-bg: #0c392d;
+    --shadow-color: #151515;
+
+    --primary-text: white;
+    --footer-text: #cecaca;
+    --modal-footnote-text: #adafb4;
+    --link-color: #94ca09;
+    --link-color-hover: #82B109;
+
+    --border-color: #1d715a;
+    --modal-border-color: #24262b;
+
+    --select-item-background-hover: #0A2E24;
+
+    --button-background: #10b88c;
+    --button-background-hover: #096a50;
+}
+html {background-size: 100%}
+.box {border-color: var(--border-color) !important}
+#horseurl {border: none}

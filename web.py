@@ -2,6 +2,7 @@ import json
 import traceback
 
 import aiohttp
+import aioredis
 import sanic
 from sanic import response as r
 
@@ -12,6 +13,7 @@ config = json.load(open('config.json'))
 app = sanic.Sanic('Realmerge')
 app.static(f'/static', 'static')
 app.blueprint(api)
+app.__realmerge__version = 'v1.4'
 
 # horsereality.com/rules section 10 seems to allow saving artwork like this
 output_config = config.get('output', {})
@@ -30,19 +32,32 @@ if output_path_multi is not None:
 async def init_aiohttp_session(app, loop):
     app.session = aiohttp.ClientSession()
 
+    if config.get('redis') is not None:
+        app.redis = await aioredis.create_redis_pool(config['redis'], encoding='utf-8')
+    else:
+        app.redis = None
+
 @app.get('/')
 async def index(request):
-    contents = open('index.html').read()
+    contents = open('pages/index.html').read()
     return r.html(contents)
 
 @app.get('/changelog')
 async def changelog(request):
-    contents = open('changelog.html').read()
+    contents = open('pages/changelog.html').read()
     return r.html(contents)
 
 @app.get('/multi')
 async def multi(request):
-    contents = open('multi.html').read()
+    if (
+        request.args.get('share') and
+        'Discordbot' in request.headers.get('User-Agent', '')
+    ):
+        # we figured embeds on share links would
+        # end up being spammy in Discord chats
+        return r.empty()
+
+    contents = open('pages/multi.html').read()
     return r.html(contents)
 
 @app.get('/favicon.ico')
@@ -93,7 +108,7 @@ async def error_handler(request, exception):
             status=status_code
         )
 
-    contents = open('error.html').read()
+    contents = open('pages/error.html').read()
     contents = contents.format(error_code=status_code, error_name=error_name)
     return r.html(contents, status=status_code)
 
