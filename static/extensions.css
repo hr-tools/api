@@ -3,8 +3,22 @@
 .horse_left {width: 290px}
 .looking_at {margin-left: 350px; width: 570px}
 button.yellow, input[type=submit].yellow {transition: background-color 0.2s}
+.horse_photocon.foal.realmerge-photocon {width: 261px; height: 515px; margin: 0}
+.horse_photocon.foal.realmerge-photocon>.horse_photo {margin: 0; width: 0; position: static}
+button.yellow[disabled], input[type=submit].yellow[disabled] {background: gray;cursor: not-allowed}
 /* custom */
 .realmerge-layers-slider {text-align: left; overflow-x: auto; display: flex; z-index: 1}
 .realmerge-layers-slider>img {height: 70px; background: rgba(206,206,206,0.85); margin-right: 10px}
 .realmerge-merged-result {background: rgba(255,255,255,0.85)}
-.realmerge-merged-result.foal {background: rgba(255,255,255,0.7)}
+.realmerge-merged-result.foal {margin: 0 !important}
+.realmerge-powered-tab {
+    float: right;
+    margin-right: 1px;
+    padding: 5px 10px;
+    background-color: #c6d6db;
+    text-align: center;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    color: initial;
+}
+.realmerge-powered-tab:hover {text-decoration: underline}

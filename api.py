@@ -262,7 +262,9 @@ async def merge_single(request):
     paths['url'] = paths.get('foal_url', paths.get('horse_url'))
 
     if payload.get('return_layer_urls'):
-        layer_urls = [url for url in [urls for urls in layers.values()]]
+        layer_urls = []
+        for urls in layers.values():
+            layer_urls += urls
     else:
         layer_urls = []
     return r.json(
