@@ -1,4 +1,5 @@
 import asyncio
+import aiohttp
 import base64
 import datetime
 from functools import partial
@@ -11,13 +12,15 @@ import traceback
 from urllib.parse import urlunparse
 
 from bs4 import BeautifulSoup
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import sanic
 from sanic import response as r
 
-from auth import relogin
+from .auth import relogin
+from .utils import dissect_layer_path, key_translations, breed_translations
 
-api = sanic.Blueprint('API', url_prefix='/api')
+
+api = sanic.Blueprint('Merge API')
 
 config = json.load(open('config.json'))
 if not config.get('authentication'):
@@ -33,25 +36,12 @@ output_route_multi = output_config.get('name-multi', 'rendered-multi')
 output_path = output_config.get('path', 'rendered')
 output_path_multi = output_config.get('path-multi', 'rendered-multi')
 
-def dissect_layer_path(path):
-    layer_attrs_list = path.split('/')
-    layer_object = {
-        'type': layer_attrs_list[2],  # colors, whites, ...
-        'horse_type': layer_attrs_list[3],  # mares, foals, ...
-        'body_part': layer_attrs_list[4].title(),  # body, mane, tail, ...
-        'size': layer_attrs_list[5],  # small, medium, large
-        'id': layer_attrs_list[6].strip('.png'),
-    }
-    return layer_object
-
 def get_page_image_urls(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
-    title = soup.title.string
 
     divs = soup.find_all('div', class_='horse_photo')
-
     if not divs:
-        return None, {}
+        return {}
 
     # when there is both a foal and a mare, there are two 'horse_photo'
     # elements - one with a 'mom' class on the parent 'horse_photocon' element.
@@ -70,7 +60,32 @@ def get_page_image_urls(html_text):
             # horses that do not have children on their page
             layers['horse'] = urls
 
-    return title, layers
+    return layers
+
+def get_page_horse_meta(html_text):
+    soup = BeautifulSoup(html_text, 'html.parser')
+    try:
+        sex = soup.select('img.icon16')[0].attrs['alt'].lower()
+    except IndexError:
+        sex = None
+    data = {
+        'title': soup.title.string,
+        'sex': sex
+    }
+    left_info = soup.select('div.horse_left .infotext .left')
+    right_info = soup.select('div.horse_left .infotext .right')
+    for left, right in zip(left_info, right_info):
+        key = left.string.strip().lower().replace(' ', '_')
+        value = (right.string or '').strip() or None
+
+        # dutch server support
+        key = key_translations.get(key, key)
+        if key == 'breed':
+            value = breed_translations.get(value, value)
+
+        data[key] = value
+
+    return data
 
 def add_horse_reality_logo(image, *, left=False):
     logo = Image.open('static/horse-reality-logo-small.png')
@@ -90,7 +105,7 @@ def add_horse_reality_logo(image, *, left=False):
 def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True, left_watermark=False):
     new_image = None
     for file in bytefiles:
-        image = Image.open(BytesIO(file))
+        image = Image.open(BytesIO(file), formats=('PNG',))
         if new_image is None:
             # dynamically create a new image per horse because each horse's
             # resolution is apparently just a little different
@@ -167,6 +182,14 @@ async def merge_single(request):
     if not url:
         return r.json({'message': 'Invalid request.'}, status=400)
 
+    use_whites = payload.get('use_whites', True)
+    if not isinstance(use_whites, bool):
+        return r.json({'message': 'Invalid type for use_whites'}, status=400)
+
+    use_watermark = payload.get('watermark', True)
+    if not isinstance(use_watermark, bool):
+        return r.json({'message': 'Invalid type for watermark'}, status=400)
+
     match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{1,10})\/', url)
     # we require a trailing slash here because without it HR will redirect us
     # infinity times between v2 and www. this has been reported to deloryan
@@ -202,23 +225,28 @@ async def merge_single(request):
     if not authconfig:
         return r.json({
             'message': 'This server is not supported by this instance of '
-                'Realmerge, or it has not been configured properly.'
+                'Realtools, or it has not been configured properly.'
         }, status=500, headers={'Access-Control-Allow-Origin': '*'})
     if authconfig.get('cookie'):
         cookie = authconfig.get('cookie')
     else:
-        cookie = await relogin(tld, request.app.session)
+        cookie = await relogin(tld, request.app.ctx.session)
 
-    page_response = await request.app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
+    page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
     if page_response.status != 200:
-        cookie = await relogin(tld, request.app.session)
-        page_response = await request.app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
+        cookie = await relogin(tld, request.app.ctx.session)
+        page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
 
     html_text = await page_response.text()
 
     loop = asyncio.get_event_loop()
     try:
-        page_title, layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+        layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+        if not layers:
+            await relogin(tld, request.app.ctx.session)
+            layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+
+        page_title = (await loop.run_in_executor(None, get_page_horse_meta, html_text))['title']
     except:
         traceback.print_exc()
         return r.json({'message': 'Failed to get image URLs.'},
@@ -230,7 +258,9 @@ async def merge_single(request):
     for key, urls in layers.items():
         bytefiles[key] = {'foal': 'foal' in urls[0], 'bytefiles': []}
         for img_url in urls:
-            img_response = await request.app.session.get(f'https://www.horsereality.{tld}{img_url}')
+            if 'whites' in img_url and not use_whites:
+                continue
+            img_response = await request.app.ctx.session.get(f'https://www.horsereality.{tld}{img_url}')
             read = await img_response.read()
             bytefiles[key]['bytefiles'].append(read)
 
@@ -241,9 +271,14 @@ async def merge_single(request):
                 pil_process,
                 _id,
                 pair['bytefiles'],
-                use_watermark=payload.get('watermark', True),
+                use_watermark=use_watermark,
                 left_watermark=pair.get('foal', False)
             ))
+        except UnidentifiedImageError:
+            return r.json({'message': 'Failed to get the right images.'},
+                status=500,
+                headers={'Access-Control-Allow-Origin': '*'}
+            )
         except:
             traceback.print_exc()
             return r.json({'message': 'Failed to merge images.'},
@@ -258,9 +293,6 @@ async def merge_single(request):
     except:
         horse_name = page_title
 
-    # temporary hotfix backwards compat for the extensions
-    paths['url'] = paths.get('foal_url', paths.get('horse_url'))
-
     if payload.get('return_layer_urls'):
         layer_urls = []
         for urls in layers.values():
@@ -272,6 +304,8 @@ async def merge_single(request):
             'message': 'Success.',
             'name': horse_name,
             'original_url': url,
+            'horse_id': _id,
+            'tld': tld,
             'layer_urls': layer_urls,
             **paths
         },
@@ -304,21 +338,26 @@ async def get_layers(request):
 
     authconfig = config['authentication'].get(tld)
     if not authconfig:
-        return r.json({'message': f'This server (.{tld}) is not supported by this instance of Realmerge, or it has not been configured properly.'}, status=500)
+        return r.json({'message': f'This server (.{tld}) is not supported by this instance of Realtools, or it has not been configured properly.'}, status=500)
     if authconfig.get('cookie'):
         cookie = authconfig.get('cookie')
     else:
-        cookie = await relogin(tld, request.app.session)
+        cookie = await relogin(tld, request.app.ctx.session)
 
-    page_response = await request.app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
+    page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
     if page_response.status != 200:
-        cookie = await relogin(tld, request.app.session)
-        page_response = await request.app.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
+        cookie = await relogin(tld, request.app.ctx.session)
+        page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
 
     html_text = await page_response.text()
     loop = asyncio.get_event_loop()
     try:
-        page_title, layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+        layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+        if not layers:
+            await relogin(tld, request.app.ctx.session)
+            layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
+
+        horse_info = await loop.run_in_executor(None, get_page_horse_meta, html_text)
     except:
         traceback.print_exc()
         return r.json({'message': 'Failed to get image URLs.'}, status=500)
@@ -341,17 +380,17 @@ async def get_layers(request):
             }
             layers_sized[horse_type].append(layer_object)
 
-    if payload['use_foal'] is True:
+    if payload.get('use_foal') is True:
         layers_sized = layers_sized.get('foal') or layers_sized['horse']
     else:
         layers_sized = layers_sized['horse']
 
     try:
-        horse_name = re.sub(r' - Horse Reality$', '', str(page_title))
+        horse_name = re.sub(r' - Horse Reality$', '', str(horse_info['title']))
         # HR oh-so-conveniently provides the horse's name in the title so for
         # a little flair we return it with the image
     except:
-        horse_name = page_title
+        horse_name = horse_info['title']
 
     return r.json(
         {
@@ -359,6 +398,8 @@ async def get_layers(request):
             'name': horse_name,
             'id': _id,
             'key': _id,
+            'tld': tld,
+            'details': horse_info,
             'layers': layers_sized
         },
         status=200
@@ -381,9 +422,15 @@ async def merge_multiple(request):
             continue
         match = url_regex.match(url)
         if not match:
-            return r.json({'message': f'Invalid URL at position {urls.index(url)}.'})
+            return r.json({'message': f'Incorrectly formatted URL at position {urls.index(url)}.'}, status=400)
 
-        img_response = await request.app.session.get(url)
+        try:
+            img_response = await request.app.ctx.session.get(url)
+        except aiohttp.client_exceptions.TooManyRedirects:
+            return r.json({'message': f'404 when fetching URL at position {urls.index(url)}: {url}'}, status=400)
+        if img_response.status >= 400:
+            return r.json({'message': f'{img_response.status} when fetching URL at position {urls.index(url)}: {url}'}, status=400)
+
         img_data = await img_response.read()
         bytefiles.append(img_data)
 
@@ -405,11 +452,11 @@ async def merge_multiple(request):
 
 @api.get(r'/multi-share/<share_id:(\d{10})>')
 async def get_share(request, share_id):
-    if not request.app.redis:
-        return r.json({'message': 'This instance of Realmerge does not support the share feature.'}, status=400)
-    
+    if not request.app.ctx.redis:
+        return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
+
     key = f'realmerge-multishare-{share_id}'
-    share_data = await request.app.redis.get(key)
+    share_data = await request.app.ctx.redis.get(key)
     if share_data is None:
         return r.json({'message': 'No such shared template exists.'}, status=404)
 
@@ -422,8 +469,8 @@ async def get_share(request, share_id):
 async def share(request):
     payload = request.json
     layers_data = payload.get('layers_data')
-    if not request.app.redis:
-        return r.json({'message': 'This instance of Realmerge does not support the share feature.'}, status=400)
+    if not request.app.ctx.redis:
+        return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
     elif not layers_data or not isinstance(layers_data, list):
         return r.json({'message': 'Missing, empty, or invalid layers_data.'}, status=400)
 
@@ -431,14 +478,14 @@ async def share(request):
     expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=expires_after)
     random_id = random.randint(1000000000, 9999999999)
     key = f'realmerge-multishare-{random_id}'
-    await request.app.redis.set(key, json.dumps(layers_data))
-    await request.app.redis.expire(key, expires_after)
+    await request.app.ctx.redis.set(key, json.dumps(layers_data))
+    await request.app.ctx.redis.expire(key, expires_after)
     return r.json({
         'id': random_id,
         'url': urlunparse((
             request.headers.get('X-Forwarded-Proto', 'http'),
             request.headers['Host'],
-            '/multi',
+            '/merge/multi',
             None,
             f'share={random_id}',
             None
@@ -449,3 +496,7 @@ async def share(request):
 @api.post('/eat')
 async def hungry(request):
     return r.empty()
+
+@api.get('/meta/support')
+async def credit_string(request):
+    return r.text(config.get('instance_support', ''))

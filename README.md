@@ -1,26 +1,22 @@
-# Realmerge (Image Combiner for Horse Reality)
+# Realtools (Web Tools for Horse Reality)
 
-This was made on request from a close friend of mine who plays this game. A live instance can be found at [realmerge.shay.cat](https://realmerge.shay.cat).
+These tools were made on request from a close friend of mine who plays this game. A live instance can be found at [realtools.shay.cat](https://realtools.shay.cat).
 
-The source is provided here for part educational purposes (the actual merge process is really simple) and partly for self-hosting, if you ever want to do that for whatever reason.
-
-# Demonstration
-
-![demonstration](https://github.com/shayypy/realmerge/blob/main/static/example.gif)
+The source is provided here for mostly for educational purposes, but you may also self-host it if the live instance is insufficient for your purposes.
 
 # Self-Hosting
 
-A live instance can be found at [realmerge.shay.cat](https://realmerge.shay.cat). This section is for if you wish to host your own instance for whatever reason you may have. Be sure as well to abide by [this project's license](https://github.com/shayypy/realmerge/blob/main/LICENSE).
+A live instance can be found at [realtools.shay.cat](https://realtools.shay.cat). This section is for if you wish to host your own instance for whatever reason you may have. Be sure as well to abide by [this project's license](https://github.com/shayypy/realtools/blob/main/LICENSE).
 
 ## Requirements
 
 * Python >=3.7
-* The packages in [`requirements.txt`](https://github.com/shayypy/realmerge/blob/main/requirements.txt)
-* A folder to save merged files to in your working directory. By default this should be `rendered`.
+* The packages in [`requirements.txt`](https://github.com/shayypy/realtools/blob/main/requirements.txt)
+* A running PostgreSQL server
 
 ## Configuration
 
-A configuration file named `config.json` is required to be in the working directory. An example of such a file can be found at [`config-example.json`](https://github.com/shayypy/realmerge/blob/main/config-example.json).
+A configuration file named `config.json` is required to be in the working directory. An example of such a file can be found at [`config-example.json`](https://github.com/shayypy/realtools/blob/main/config-example.json).
 
 ### `address` and `port` (optional)
 
@@ -32,26 +28,10 @@ Horse pages cannot be viewed without being logged in, so we use cookies to tell 
 
 If you don't want to support a specific server on your instance, just remove its key to ignore it. Blanking out both will raise an error, though.
 
-### `output` (optional)
+##### Note: Dutch Server
 
-If you want to customize where Realmerge saves merged images, you can set the `name` and `path` values here.
-
-#### `name`
-
-The route that the webserver will serve files on. E.g., if it is `coolhorsepics`, files will be available on `cooldomain.com/coolhorsepics/...`. Defaults to `rendered`.
-
-#### `name-multi`
-
-Same as `name`, but for [Multi mode](https://realmerge.shay.cat/multi) renders.
-
-#### `path`
-
-An absolute or relative path on your filesystem to where Realmerge should save merged files. Defauls to `rendered` in the current working directory. Set to `null` to disable saving to the local disk and instead serve images as base64 data. If Realmerge fails to save locally due to a permissions error, this will be done anyway, even if the value is not `null`.
-
-#### `path-multi`
-
-Same as `path`, but for [Multi mode](https://realmerge.shay.cat/multi) renders.
+The Dutch server will be sunsetted by HR soon. When this happens, Realtools will no longer read for `.nl` credentials and URLs inputted from the Dutch server will be interpretted as being invalid.
 
 ### `redis`
 
-A redis address to store share IDs from the share button on [Multi mode](https://realmerge.shay.cat/multi).
+A redis address to store share IDs from the share button on [Multi mode](https://realtools.shay.cat/multi).
