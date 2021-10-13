@@ -155,6 +155,16 @@ white_pattern_reserves = {
             'stallion': {'body': '56c627016'},
             'mare': {'body': '1a300d2b0'}
         }
+    },
+    'thoroughbred': {
+        'RN': {
+            'stallion': {'body': '4c8cc7416'},
+            'mare': {'body': '87d766949'}
+        },
+        'OLW': {
+            'stallion': {'body': 'ec8b59391', 'mane': 'ec8b59396'},
+            'mare': {'body': 'c06b3d2c7', 'mane': 'c06b3d2c5'}
+        }
     }
 }
 
