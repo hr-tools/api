@@ -186,7 +186,6 @@ breed_translations = {
     'Belgisch Trekpaard': 'Brabant Horse',
     'Brumby': 'Brumby Horse',
     'Camargue': 'Camargue Horse',
-    'Cleveland Bay': 'Cleveland Bay Horse',
     'Engels Volbloed': 'Thoroughbred',
     'Fins Paarde': 'Finnhorse',
     'Fjord': 'Fjord Horse',
