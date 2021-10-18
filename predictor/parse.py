@@ -1,4 +1,8 @@
 import csv
+import json
+
+config = json.load(open('config.json'))
+sheets_dir = config.get('sheets', 'sheets')
 
 IGNORE_VALUES = ('X', 'x', '')
 
@@ -95,7 +99,7 @@ class SheetParser:
         self.current_layer = {}
 
     def parse(self, breed):
-        sheet_csv = open(f'sheets/{breed}.csv')
+        sheet_csv = open(f'{sheets_dir}/{breed}.csv')
         all_rows = []
         for row in csv.reader(sheet_csv):
             all_rows.append(row)

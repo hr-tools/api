@@ -51,6 +51,36 @@ white_pattern_reserves = {
             'mare': {}
         }
     },
+    'icelandic_horse': {
+        'SW1': {
+            'stallion': {'body': 'a6b777b55'},
+            'mare': {'body': 'a6b777b53'}
+        },
+        'SW1/SW1': {
+            'stallion': {'body': '84af18d19'},
+            'mare': {'body': 'f9256b509'}
+        },
+        'RN': {
+            'stallion': {'body': 'eacb73ad8'},
+            'mare': {'body': 'eacb73ad8'}
+        },
+        'TO': {
+            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'body': '3bc1360f9'},
+            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'body': 'e990c7e44'}
+        },
+        'TO/TO': {
+            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'body': '3bc1360f9'},
+            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'body': 'e990c7e44'}
+        },
+        'SW1/SW1 TO': {
+            'stallion': {'body': 'ed41e7553', 'mane': 'ed41e7559', 'tail': 'ed41e7559'},
+            'mare': {'body': '56aeac3c4', 'mane': '56aeac3c5', 'tail': '56aeac3c3'}
+        },
+        'SW1/SW1 TO/TO': {
+            'stallion': {'body': 'ed41e7553', 'mane': 'ed41e7559', 'tail': 'ed41e7559'},
+            'mare': {'body': '56aeac3c4', 'mane': '56aeac3c5', 'tail': '56aeac3c3'}
+        }
+    },
     'irish_cob_horse': {
         'RN': {
             'stallion': {'body': 'd74290788'},
