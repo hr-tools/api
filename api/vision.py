@@ -223,7 +223,7 @@ async def predict(request):
             'rabicano', 'sabino2'
         ]
         gene_name_overrides = {
-            'SW1/SW1': 'Homozygous Splash White',
+            'SW1/SW1': 'Double Splash White',
             'TO/TO': 'Homozygous Tobiano'
         }
         gene_values = {}
