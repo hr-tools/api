@@ -280,10 +280,14 @@ async def predict(request):
                 # no reserves available
                 continue
             else:
+                if (
+                    urls_data.get('body', {}).get('whites')
+                    or urls_data.get('mane', {}).get('whites')
+                    or urls_data.get('tail', {}).get('whites')
+                ):
+                    # ignore if whites were already found anywhere on the horse (#2)
+                    continue
                 for body_part, white_id in replace_with.items():
-                    if urls_data[body_part]['whites']:
-                        # ignore if whites were already found
-                        continue
                     if not white_id:
                         # no value for this body part
                         continue
