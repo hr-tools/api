@@ -65,12 +65,12 @@ white_pattern_reserves = {
             'mare': {'body': 'eacb73ad8'}
         },
         'TO': {
-            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'body': '3bc1360f9'},
-            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'body': 'e990c7e44'}
+            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'tail': '3bc1360f9'},
+            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'tail': 'e990c7e44'}
         },
         'TO/TO': {
-            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'body': '3bc1360f9'},
-            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'body': 'e990c7e44'}
+            'stallion': {'body': 'e990c7e46', 'mane': '3bc1360f0', 'tail': '3bc1360f9'},
+            'mare': {'body': 'e990c7e47', 'mane': 'e990c7e41', 'tail': 'e990c7e44'}
         },
         'SW1/SW1 TO': {
             'stallion': {'body': 'ed41e7553', 'mane': 'ed41e7559', 'tail': 'ed41e7559'},
