@@ -267,6 +267,11 @@ async def predict(request):
             gene_values.pop('TO')
             gene_values['SW1/SW1 TO'] = 'Double Splash Tobiano'
 
+        if gene_values.get('SW1/SW1') and gene_values.get('TO/TO'):
+            gene_values.pop('SW1/SW1')
+            gene_values.pop('TO/TO')
+            gene_values['SW1/SW1 TO/TO'] = 'Double Splash Homozygous Tobiano'
+
         white_pattern_color_name_to_add = set()
         for gene_value, gene_name in gene_values.items():
             try:
