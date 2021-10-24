@@ -186,14 +186,14 @@ input.horse-url {
 .box.results {
     text-align: center
 }
-.box.results>h1, .preview-titlebar>h1 {
+.box.results>h1, .preview-titlebar h1 {
     font-size: 30px;
     text-align: left;
     color: var(--primary-text-color);
 }
-.preview-titlebar>h1 {
+/*.preview-titlebar h1 {
     margin-right: 15px;
-}
+}*/
 .box.results>img {
     margin: auto;
     max-width: 100%;

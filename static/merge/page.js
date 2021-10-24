@@ -57,8 +57,11 @@ class HorseResults extends React.Component {
             results.push(e(
                 'div', {className: 'box results', style: {width: '100%', marginRight: (this.props.foal_url ? '20px' : '0')}},
                 e('div', {className: 'preview-titlebar'},
-                    e('h1', null, this.props.name),
-                    e('button', {onClick: () => {basicShare(this.props.horse_id, this.props.tld, 'merge')}}, 'Share')
+                    e('a', {href: `https://www.horsereality.${this.props.tld}/horses/${this.props.id}/`}, e('h1', null, this.props.name)),
+                    e('button',
+                        {style: {marginLeft: '15px'}, onClick: () => {basicShare(this.props.horse_id, this.props.tld, 'merge')}},
+                        'Share'
+                    )
                 ),
                 e('img', {src: this.props.horse_url})
             ))

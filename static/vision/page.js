@@ -36,7 +36,7 @@ const users = {
     Yumy: 'https://v2.horsereality.com/user/100782',
     KitKat: 'https://v2.horsereality.com/user/66435',
     Aca: 'https://v2.horsereality.com/user/70318'
-}
+};
 
 const dataCreditsModal = e(Modal, {
     name: 'Data Credits',
@@ -165,12 +165,14 @@ class HorseResults extends React.Component {
         const horse = e(
             'div', {className: 'box results', style: {width: '100%', marginRight: '20px'}},
             e('div', {className: 'preview-titlebar'},
-                e('h1', null, this.props.name),
-                e('button', {onClick: () => {importMulti()}}, 'Import to Multi'),
-                e('button', {
-                    style: {marginLeft: '0px'},
-                    onClick: () => {basicShare(this.props.id, this.props.tld, 'vision')}
-                }, 'Share'
+                e('a', {href: `https://www.horsereality.${this.props.tld}/horses/${this.props.id}/`}, e('h1', null, this.props.name)),
+                e('button', 
+                    {style: {marginLeft: '15px'}, onClick: () => {importMulti()}},
+                    'Import to Multi'
+                ),
+                e('button',
+                    {onClick: () => {basicShare(this.props.id, this.props.tld, 'vision')}},
+                    'Share'
                 )
             ),
             e('img', {src: this.props.url})
