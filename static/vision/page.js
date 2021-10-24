@@ -165,7 +165,7 @@ class HorseResults extends React.Component {
         const horse = e(
             'div', {className: 'box results', style: {width: '100%', marginRight: '20px'}},
             e('div', {className: 'preview-titlebar'},
-                e('a', {href: `https://www.horsereality.${this.props.tld}/horses/${this.props.horse_id}/`}, e('h1', null, this.props.name)),
+                e('a', {href: `https://www.horsereality.${this.props.tld}/horses/${this.props.id}/`}, e('h1', null, this.props.name)),
                 e('button',
                     {style: {marginLeft: '15px'}, onClick: () => {importMulti()}},
                     'Import to Multi'
