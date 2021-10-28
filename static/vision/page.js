@@ -35,26 +35,30 @@ const users = {
     thanksbutnah: 'https://v2.horsereality.com/user/53147',
     Yumy: 'https://v2.horsereality.com/user/100782',
     KitKat: 'https://v2.horsereality.com/user/66435',
-    Aca: 'https://v2.horsereality.com/user/70318'
-};
+    Aca: 'https://v2.horsereality.com/user/70318',
+    Linn: 'https://v2.horsereality.com/user/136244',
+    Nagapie: 'https://v2.horsereality.com/user/39129'
+}
 
 const dataCreditsModal = e(Modal, {
     name: 'Data Credits',
     children: [
         e('p', {className: 'disclaimer'}, 'Many thanks to the following individuals who have created color guides and/or volunteered to collect data for this site.'),
         e('ul', null,
+            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.aBREEviate}, 'aBREEviate'), ': PRE')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Aca}, 'Aca'), ': Thoroughbred')),    
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Allendria}, 'Allendria'), ': Irish Cob')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.ArufaurufuChan}, 'ArufaurufuChan'), ': Icelandic, Trakehner')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Casper}, 'Casper'), ': Brumby')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.aBREEviate}, 'aBREEviate'), ': PRE')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.DarkCornelius}, 'Dark-Cornelius'), ': Camargue, Cleveland, Fjord, Mustang, Suffolk Punch, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Equestrian}, '--Equestrian--'), ': Brabant, PRE, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Foam}, 'Foam'), ': Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, PRE, Shire, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.JessaB}, 'JessaB'), ': Quarter Horse, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Karmaleon}, 'Karmaleon'), ': PRE')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.KitKat}, 'Kit-Kat'), ': Thoroughbred')),
+            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Linn}, 'Linn'), ': Arabian, Irish Cob')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.LynxVagabond}, 'LynxVagabond'), ': Friesian, Shire, Thoroughbred')),
+            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Nagapie}, 'Nagapie'), ': Arabian')),
             e('li', null, e('p', {className: 'disclaimer'}, 'Ruttis: Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, 'silfurskin: Camargue, Kladruber, Norman Cob')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.thanksbutnah}, 'thanksbutnah'), ': Brumby')),
