@@ -13,6 +13,16 @@ def dissect_layer_path(path):
 # options on the front page to supplement the specific genes being unavailable
 # to the server
 white_pattern_reserves = {
+    'arabian_horse': {
+        'rab/rab': {
+            'stallion': {'body': '140cb0216', 'tail': '983ab5ca1'},
+            'mare': {'body': 'e9688c125', 'tail': '39faa8b87'}
+        },
+        'sab2/sab2': {
+            'stallion': {'body': '6a3404f05'},
+            'mare': {'body': '144659b49'}
+        }
+    },
     'brabant_horse': {
         'RN': {
             'stallion': {'body': '8d15e5f79', 'mane': '8d15e5f73', 'tail': '8d15e5f76'},
