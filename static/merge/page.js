@@ -115,7 +115,7 @@ function loadMain() {
 async function loadCheckShare() {
     const queryParams = new URLSearchParams(window.location.search);
     const shareId = queryParams.get('share');
-    const tld = queryParams.get('tld');
+    const tld = queryParams.get('tld') || 'com';
     if (!shareId) return false
     if (['com', 'nl'].indexOf(tld) == -1) return false
 
