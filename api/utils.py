@@ -213,6 +213,32 @@ white_pattern_reserves = {
             'stallion': {'body': 'ec8b59391', 'mane': 'ec8b59396'},
             'mare': {'body': 'c06b3d2c7', 'mane': 'c06b3d2c5'}
         }
+    },
+    'welsh_pony': {
+        'RN': {
+            'stallion': {'body': '6aabe9204'},
+            'mare': {'body': '6aabe9206'}
+        },
+        'rab/rab': {
+            'stallion': {'body': 'fc2512596', 'tail': 'fc2512599'},
+            'mare': {'body': 'fc2512592', 'tail': 'fc2512591'}
+        },
+        'SW1': {
+            'stallion': {'body': '634bf8208'},
+            'mare': {'body': '634bf8202'}
+        },
+        'SW1/SW1': {
+            'stallion': {'body': '3494da562'},
+            'mare': {'body': 'd64b582b1'}
+        },
+        'sab2/sab2': {
+            'stallion': {'body': '072d7c871'},
+            'mare': {'body': '072d7c871'}
+        },
+        'SW1/SW1 sab2/sab2': {
+            'stallion': {'body': 'a547be397'},
+            'mare': {'body': '29e236050'}
+        }
     }
 }
 

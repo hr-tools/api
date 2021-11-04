@@ -60,6 +60,10 @@ class SheetParser:
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
         },
+        'knabstrupper': {
+            'stallion': ['body', 'mane', 'tail'],
+            'mare': ['body', 'mane', 'tail']
+        },
         'mustang_horse': {
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
@@ -89,6 +93,10 @@ class SheetParser:
             'mare': ['tail', 'body', 'mane']
         },
         'trakehner_horse': {
+            'stallion': ['body', 'mane', 'tail'],
+            'mare': ['body', 'mane', 'tail']
+        },
+        'welsh_pony': {
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
         }
