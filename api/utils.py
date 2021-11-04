@@ -267,7 +267,6 @@ breed_translations = {
     'Haflinger': 'Haflinger Horse',
     'IJslander': 'Icelandic Horse',
     'Kladruber': 'Kladruber Horse',
-    'Knabstrupper': 'Knabstrupper Horse',
     'Lusitano': 'Lusitano Horse',
     'Noriker': 'Noriker Horse',
     'Normandische Cob': 'Norman Cob',

@@ -4,6 +4,7 @@ import traceback
 import aiohttp
 import asyncpg
 import aioredis
+import logging
 import sanic
 from sanic import response as r
 
@@ -11,6 +12,15 @@ from api import api
 import predictor
 
 config = json.load(open('config.json'))
+
+logger = logging.getLogger('realtools')
+logger.addHandler(logging.NullHandler())
+
+if config.get('log') is not None:
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(filename=config['log'], encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
 
 def parse_sheets_json(write_to='output.json', *, indent=2):
     all_layers = []
@@ -119,7 +129,7 @@ async def parse_sheets_db():
 app = sanic.Sanic('Realtools')
 app.static(f'/static', 'static')
 app.blueprint(api)
-app.__realtools__version = 'v2.0'
+app.__realtools__version = 'v2.2'
 
 # horsereality.com/rules section 10 seems to allow saving artwork like this
 output_config = config.get('output', {})

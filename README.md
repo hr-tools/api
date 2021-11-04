@@ -35,3 +35,7 @@ The Dutch server will be sunsetted by HR soon. When this happens, Realtools will
 ### `redis`
 
 A redis address to store share IDs from the share button on [Multi mode](https://realtools.shay.cat/multi).
+
+### `log`
+
+A path to a file to log to. If not specified, logging is disabled (default).

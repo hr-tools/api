@@ -1,6 +1,7 @@
 import base64
 import datetime
 from io import BytesIO
+import logging
 import random
 import re
 import traceback
@@ -11,12 +12,13 @@ from sanic import response as r
 
 from .utils import dissect_layer_path, white_pattern_reserves
 
-
 api = sanic.Blueprint('Vision API')
 
 config = json.load(open('config.json'))
 run_address = config.get('address', 'localhost')
 run_port = config.get('port', 2965)
+
+log = logging.getLogger('realtools')
 
 @api.post('/predict')
 async def predict(request):
@@ -61,6 +63,7 @@ async def predict(request):
     # get layer orders
     orders = await request.app.ctx.psql_pool.fetchrow('SELECT stallion, mare FROM orders WHERE breed = $1', breed)
     if not orders:
+        log.debug(f'Found no orders for breed {breed!r} while predicting {url}')
         return r.json({'message': 'No data is available for this breed, sorry.'}, status=404)
 
     # match to adult layers
@@ -74,6 +77,7 @@ async def predict(request):
         breed, foal_colour_ids
     )
     if not colour_layer_rows:
+        log.debug(f'Found no colour layers while predicting {url} - IDs {json.dumps(foal_colour_ids)}')
         return r.json({'message': 'No data is available for this horse, sorry.'}, status=404)
 
     # duplicate tracking
