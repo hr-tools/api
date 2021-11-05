@@ -30,7 +30,7 @@ class MainContent extends React.Component {
                     e('li', null, 'Icelandic - ', e('b', null, 'In progress:'), ' colors (grays), white markings & patterns'),
                     e('li', null, 'Irish Cob - ', e('b', null, 'In progress:'), ' white markings & patterns'),
                     e('li', null, 'Kladruber - ', e('b', null, 'In progress:'), ' colors, white markings'),
-                    e('li', null, 'Knabstrupper - ', e('b', null, 'In progress:'), ' colors (flaxens), white markings & patterns'),
+                    e('li', null, 'Knabstrupper - ', e('b', null, 'In progress:'), ' white markings & patterns'),
                     e('li', null, 'Mustang - ', e('b', null, 'In progress:'), ' colors, white markings & patterns'),
                     e('li', null, 'PRE - ', e('b', null, 'In progress:'), ' colors, white markings'),
                     e('li', null, 'Quarter - ', e('b', null, 'In progress:'), ' colors, white markings & patterns'),
