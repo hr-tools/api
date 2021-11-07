@@ -13,11 +13,13 @@ const disclaimersModal = e(Modal, {
     children: [
         e('p', {className: 'disclaimer'}, e('a', {href: '/vision/breeds'}, 'Click here for a list of breeds that Realvision supports.')),
         e('br'),
-        e('p', {className: 'disclaimer'}, 'Base color selections are for eliminating inaccurate color predictions caused by duplicate image codes. We suggest using these fields if your horse is heavily diluted. If your foal is predicted with a ± (plus-minus sign) in its color name and genotype, it means that this color shares image codes with a different genotype, and could be used for a horse with or without a certain gene. E.g., Smoky Cream ± Silver = your horse will look exactly like a smoky cream with or without silver.'),
+        e('p', {className: 'disclaimer'}, 'Base color selections are for eliminating inaccurate color predictions caused by duplicate image codes. We suggest using these fields if your horse is heavily diluted.'),
         e('br'),
-        e('p', {className: 'disclaimer'}, 'Realvision can predict rabicano and roan on untested foals by referencing white pattern codes that are changed due to the presence of the gene. However, these genes cannot be seen on foals.'),
+        e('p', {className: 'disclaimer'}, 'If your foal is predicted with a ± (plus-minus sign) in its color name and genotype, it means that this color shares image codes with a different genotype, and could be used for a horse with or without a certain gene. E.g., Smoky Cream ± Silver = your horse will look exactly like a smoky cream with or without silver.'),
         e('br'),
-        e('p', {className: 'disclaimer'}, 'If your foal cannot be predicted, please send the foal\'s link to bjömun#6758 on Discord or ', e('a', {href: 'https://v2.horsereality.com/user/2965'}, 'Bjomun'), ' on Horse Reality.')
+        e('p', {className: 'disclaimer'}, 'Realvision can predict rabicano and roan on untested foals by referencing white pattern codes that are changed due to the presence of the gene. However, these genes cannot be seen on foals. This means that the rabicano and roan selection boxes must be used for an accurate prediction if your foal has no white markings/patterns.'),
+        e('br'),
+        e('p', {className: 'disclaimer'}, 'If your foal cannot be predicted or is predicted without white markings/patterns, this means that its layers do not currently exist in our database (it will, of course, grow with its white markings/patterns!) If this happens, please send the foal\'s link to bjömun#6758 on Discord or ', e('a', {href: 'https://v2.horsereality.com/user/2965'}, 'Bjomun'), ' on Horse Reality.')
     ]
 });
 
