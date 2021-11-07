@@ -172,6 +172,13 @@ async def cors_preflight_merge(request):
         'Access-Control-Allow-Origin': '*'
     })
 
+@api.options('/merge/multiple')
+async def cors_preflight_merge_multiple(request):
+    return r.empty(headers={
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*'
+    })
+
 @api.post('/merge')
 async def merge_single(request):
     payload = request.json
@@ -317,11 +324,11 @@ async def merge_single(request):
 async def get_layers(request):
     payload = request.json
     if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        return r.json({'message': 'Invalid request.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
     url = payload.get('url')
     if not url:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        return r.json({'message': 'Invalid request.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
     match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{1,10})\/', url)
     # we require a trailing slash here because without it HR will redirect us
@@ -331,14 +338,18 @@ async def get_layers(request):
     # but hey whatever
 
     if not match:
-        return r.json({'message': 'Invalid URL.'}, status=400)
+        return r.json({'message': 'Invalid URL.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
     _id = match.group(3)
     tld = match.group(2)
 
     authconfig = config['authentication'].get(tld)
     if not authconfig:
-        return r.json({'message': f'This server (.{tld}) is not supported by this instance of Realtools, or it has not been configured properly.'}, status=500)
+        return r.json(
+            {'message': f'This server (.{tld}) is not supported by this instance of Realtools, or it has not been configured properly.'},
+            status=500,
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
     if authconfig.get('cookie'):
         cookie = authconfig.get('cookie')
     else:
@@ -360,7 +371,7 @@ async def get_layers(request):
         horse_info = await loop.run_in_executor(None, get_page_horse_meta, html_text)
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to get image URLs.'}, status=500)
+        return r.json({'message': 'Failed to get image URLs.'}, status=500, headers={'Access-Control-Allow-Origin': '*'})
 
     # we serve small urls as well as large urls because I was working on this
     # feature on a mobile connection and realized how long each image took to
@@ -402,7 +413,8 @@ async def get_layers(request):
             'details': horse_info,
             'layers': layers_sized
         },
-        status=200
+        status=200,
+        headers={'Access-Control-Allow-Origin': '*'}
     )
 
 @api.post('/merge/multiple')
