@@ -26,7 +26,7 @@ class MainContent extends React.Component {
                     e('li', null, 'Arabian - ', e('b', null, 'In progress:'), ' white markings & patterns'),
                     e('li', null, 'Brabant - ', e('b', null, 'In progress:'), ' colors (new variations)'),
                     e('li', null, 'Brumby - ', e('b', null, 'In progress:'), ' colors, white markings & patterns'),
-                    e('li', null, 'Friesian - ', e('b', null, 'In progress:'), ' colors (new variations), white markings (new stars)'),
+                    e('li', null, 'Friesian - ', e('b', null, 'In progress:'), ' white markings'),
                     e('li', null, 'Icelandic - ', e('b', null, 'In progress:'), ' colors (grays), white markings & patterns'),
                     e('li', null, 'Irish Cob - ', e('b', null, 'In progress:'), ' white markings & patterns'),
                     e('li', null, 'Kladruber - ', e('b', null, 'In progress:'), ' colors, white markings'),
@@ -44,9 +44,6 @@ class MainContent extends React.Component {
                     e('li', null, 'Finnhorse'),
                     e('li', null, 'Lusitano'),
                     e('li', null, 'Noriker'),
-                ),
-                e('h2', {style: {marginTop: '0px', marginBottom: '5px'}}, 'To-do'),
-                e('ul', null,
                     e('li', null, 'Oldenburg')
                 )
             ),
