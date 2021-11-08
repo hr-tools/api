@@ -28,7 +28,7 @@ class MainContent extends React.Component {
                     e(
                         'ol', {style: {color: '#CECECE', fontSize: '20px'}},
                         e('li', null, 'Download and extract ', e('a', {href: '/static/ext-chrome/latest.zip'}, 'this ZIP file'), ' anywhere on your computer (don\'t delete the folder)'),
-                        e('li', null, 'Visit ', e('a', {href: 'chrome://extensions', target: '_blank'}, 'chrome://extensions'), ' in your browser'),
+                        e('li', null, 'Visit ', e('code', null, 'chrome://extensions'), ' in your browser (put that in your address bar in a new tab)'),
                         e('li', null, 'Enable "Developer mode" in the top right corner'),
                         e('li', null, 'Click "Load unpacked" and select the folder that you extracted'),
                     ),
