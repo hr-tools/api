@@ -11,6 +11,7 @@ import sanic
 from sanic import response as r
 
 from .utils import dissect_layer_path, white_pattern_reserves
+import predictor
 
 api = sanic.Blueprint('Vision API')
 
@@ -390,3 +391,25 @@ async def predict(request):
     merged_data['details'] = data['details']
     merged_data['layers'] = adult_layer_details  # for "Import to Multi"
     return r.json(merged_data)
+
+@api.options('/parse-sheet')
+async def cors_preflight_parse_sheet(request):
+    return r.empty(headers={
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*'
+    })
+
+@api.post('/parse-sheet')
+async def parse_sheet(request):
+    file = request.files.get('csv')
+    if not file:
+        return r.json({'message': 'Must provide a CSV to parse.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
+
+    parser = predictor.SheetParser()
+    try:
+        layers = parser.parse(raw=file.body.decode('utf-8'))
+    except Exception as exc:
+        log.debug(f'Failed to parse a sheet: {exc.__class__.__name__} {str(exc)}')
+        return r.json({'message': 'Invalid CSV data.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
+
+    return r.json(layers, status=200, headers={'Access-Control-Allow-Origin': '*'})

@@ -12,7 +12,7 @@ log = logging.getLogger('realtools')
 
 @api.middleware('request')
 async def log_request(request):
-    log.info(f'Received {request.method} {request.path.replace("/api", "", 1)} with {json.dumps(request.json)}')
+    log.info(f'Received {request.method} {request.path.replace("/api", "", 1)} with {request.body.decode("utf-8")}')
 
 @api.middleware('response')
 async def log_response(request, response):

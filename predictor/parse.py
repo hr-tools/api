@@ -1,5 +1,6 @@
 import csv
 import json
+from io import StringIO
 
 config = json.load(open('config.json'))
 sheets_dir = config.get('sheets', 'sheets')
@@ -106,9 +107,15 @@ class SheetParser:
         self.current_layer_block = []
         self.current_layer = {}
 
-    def parse(self, breed):
-        sheet_csv = open(f'{sheets_dir}/{breed}.csv')
+    def parse(self, breed=None, *, raw=None):
         all_rows = []
+        if breed:
+            sheet_csv = open(f'{sheets_dir}/{breed}.csv')
+        elif raw:
+            sheet_csv = StringIO(raw)
+        else:
+            raise ValueError(f'One of breed, raw must be specified.')
+
         for row in csv.reader(sheet_csv):
             all_rows.append(row)
 
