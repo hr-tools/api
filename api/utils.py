@@ -136,6 +136,17 @@ white_pattern_reserves = {
             'mare': {'body': 'a6ed4dc95', 'mane': '9890c3654'}
         }
     },
+    'oldenburg_horse': {
+        'TO': {
+            'stallion': {'body': '46869d977', 'mane': 'ea112e255', 'tail': '9d2e56d98'},
+            'mare': {'body': 'a68d8d825', 'mane': 'e14a80179', 'tail': '46869d976'}
+        },
+        'TO/TO': {
+            # this is copied from TO because there is no dedicated art for homozygous tobiano
+            'stallion': {'body': '46869d977', 'mane': 'ea112e255', 'tail': '9d2e56d98'},
+            'mare': {'body': 'a68d8d825', 'mane': 'e14a80179', 'tail': '46869d976'}
+        }
+    },
     'trakehner_horse': {
         'RN': {
             'stallion': {'body': '567692d74'},

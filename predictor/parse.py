@@ -73,6 +73,10 @@ class SheetParser:
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
         },
+        'oldenburg_horse': {
+            'stallion': ['body', 'mane', 'tail'],
+            'mare': ['body', 'mane', 'tail']
+        },
         'pura_raza_española': {
             'stallion': ['tail', 'body', 'mane'],
             'mare': ['tail', 'body', 'mane']

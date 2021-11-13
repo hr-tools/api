@@ -40,7 +40,8 @@ const users = {
     Aca: 'https://v2.horsereality.com/user/70318',
     Linn: 'https://v2.horsereality.com/user/136244',
     Nagapie: 'https://v2.horsereality.com/user/39129',
-    LunaSommer: 'https://v2.horsereality.com/user/131121'
+    LunaSommer: 'https://v2.horsereality.com/user/131121',
+    Falida: 'https://v2.horsereality.com/user/18825'
 }
 
 const dataCreditsModal = e(Modal, {
@@ -55,7 +56,8 @@ const dataCreditsModal = e(Modal, {
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Casper}, 'Casper'), ': Brumby')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.DarkCornelius}, 'Dark-Cornelius'), ': Camargue, Cleveland, Fjord, Mustang, Suffolk Punch, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Equestrian}, '--Equestrian--'), ': Brabant, PRE, Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Foam}, 'Foam'), ': Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, PRE, Shire, Thoroughbred, Welsh Pony')),
+            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Falida}, 'Falida'), ': Oldenburg')),
+            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Foam}, 'Foam'), ': Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.JessaB}, 'JessaB'), ': Quarter Horse, Thoroughbred')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Karmaleon}, 'Karmaleon'), ': PRE')),
             e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.KitKat}, 'Kit-Kat'), ': Thoroughbred')),

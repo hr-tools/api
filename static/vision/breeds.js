@@ -32,6 +32,7 @@ class MainContent extends React.Component {
                     e('li', null, 'Kladruber - ', e('b', null, 'In progress:'), ' colors, white markings'),
                     e('li', null, 'Knabstrupper - ', e('b', null, 'In progress:'), ' white markings & patterns'),
                     e('li', null, 'Mustang - ', e('b', null, 'In progress:'), ' colors, white markings & patterns'),
+                    e('li', null, 'Oldenburg - ', e('b', null, 'In progress:'), ' white markings'),
                     e('li', null, 'PRE - ', e('b', null, 'In progress:'), ' colors, white markings'),
                     e('li', null, 'Quarter - ', e('b', null, 'In progress:'), ' colors, white markings & patterns'),
                     e('li', null, 'Shire - ', e('b', null, 'In progress:'), ' colors'),
@@ -43,8 +44,7 @@ class MainContent extends React.Component {
                 e('ul', null,
                     e('li', null, 'Finnhorse'),
                     e('li', null, 'Lusitano'),
-                    e('li', null, 'Noriker'),
-                    e('li', null, 'Oldenburg')
+                    e('li', null, 'Noriker')
                 )
             ),
             e(Footer, {page: 'vision', settingsModal: modals.settings, creditsModal: modals.credits})
