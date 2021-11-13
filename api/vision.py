@@ -62,10 +62,12 @@ async def predict(request):
         return r.json({'message': 'This horse is not a foal.'}, status=400)
 
     # get layer orders
-    orders = await request.app.ctx.psql_pool.fetchrow('SELECT stallion, mare FROM orders WHERE breed = $1', breed)
-    if not orders:
+    orders = predictor.SheetParser.orders.get(breed)
+    if not orders or (orders and not orders.get(sex)):
         log.debug(f'Found no orders for breed {breed!r} while predicting {url}')
         return r.json({'message': 'No data is available for this breed, sorry.'}, status=404)
+
+    orders = orders[sex]
 
     # match to adult layers
     colour_layer_rows = await request.app.ctx.psql_pool.fetch(
@@ -343,7 +345,7 @@ async def predict(request):
     # we use a dict for urls_data instead of just a list to avoid duplicate
     # layers that don't get seen and just cause extra processing time
     urls_raw = [{'body_part': key, **value} for key, value in urls_data.items()]
-    urls_raw.sort(key=lambda d: orders[sex].index(d['body_part']))
+    urls_raw.sort(key=lambda d: orders.index(d['body_part']))
     complete_urls = []
     for d in urls_raw:
         complete_urls.append(d['colours'])
