@@ -1,5 +1,6 @@
 import Footer from '/static/footer.js';
 import {modals} from '/static/modal.js';
+import {showError} from '/static/errors.js';
 import {emoji} from '/static/symbols.js';
 import {getUseWatermark} from '/static/cookies.js';
 import {basicShare} from '/static/share.js';
@@ -82,7 +83,7 @@ async function merge() {
     const horse_url_input = document.querySelector('#horse-url');
     const horse_url = horse_url_input.value;
     if (!horse_url) {
-        alert('Input box must not be empty.')
+        showError('Input box must not be empty.')
         return
     }
     horse_url_input.value = null;
@@ -97,7 +98,7 @@ async function merge() {
     });
     const data = await response.json();
     if (!response.ok) {
-        alert(data.message);
+        showError(data.message);
         return
     }
 

@@ -11,16 +11,21 @@ export function spawnModal(modal) {
 
 export class Modal extends React.Component {
     render() {
-        return e('div', {className: 'modal-background', id: 'modal-background', onClick: (event) => {
-            if (event.target.id == 'modal-background') {
-                ReactDOM.unmountComponentAtNode(event.target.parentNode)
-            }
-        }},
+        let h1Style = {};
+        if (this.props.color) {
+            h1Style = {color: this.props.color}
+        }
+        return (
+            e('div', {className: 'modal-background', id: 'modal-background', onClick: (event) => {
+                if (event.target.id == 'modal-background') {
+                    ReactDOM.unmountComponentAtNode(event.target.parentNode)
+                }
+            }},
             e('div', {className: 'box modal'},
-                e('h1', {}, this.props.name),
+                e('h1', {style: h1Style}, this.props.name),
                 ...this.props.children
             )
-        )
+        ))
     }
 }
 
@@ -105,8 +110,17 @@ const shareModal = e(Modal, {
     ]
 })
 
+const errorModal = e(Modal, {
+    name: 'Error',
+    color: '#F00000',
+    children: [
+        e('p', {id: 'error-message'})
+    ]
+})
+
 export const modals = {
     settings: settingsModal,
     credits: creditsModal,
-    share: shareModal
+    share: shareModal,
+    error: errorModal
 }

@@ -1,5 +1,6 @@
 import Footer from '/static/footer.js';
 import {Modal, modals, spawnModal} from '/static/modal.js';
+import {showError} from '/static/errors.js';
 import {emoji} from '/static/symbols.js';
 import {getUseWatermark} from '/static/cookies.js';
 import {base64UrlEncode} from '/static/base64.js';
@@ -24,24 +25,36 @@ const disclaimersModal = e(Modal, {
 });
 
 const users = {
-    Equestrian: 'https://v2.horsereality.com/user/45061',
-    Foam: 'https://v2.horsereality.com/user/12669',
-    DarkCornelius: 'https://v2.horsereality.com/user/30403',
-    JessaB: 'https://v2.horsereality.com/user/38272',
+    aBREEviate: 'https://v2.horsereality.com/user/86694',
+    Aca: 'https://v2.horsereality.com/user/70318',
+    Allendria: 'https://v2.horsereality.com/user/104787',
     ArufaurufuChan: 'https://v2.horsereality.com/user/104991',
     Casper: 'https://v2.horsereality.com/user/2743',
-    LynxVagabond: 'https://v2.horsereality.nl/user/5797',
-    Allendria: 'https://v2.horsereality.com/user/104787',
+    DarkCornelius: 'https://v2.horsereality.com/user/30403',
+    '--Equestrian--': 'https://v2.horsereality.com/user/45061',
+    Falida: 'https://v2.horsereality.com/user/18825',
+    Foam: 'https://v2.horsereality.com/user/12669',
+    JessaB: 'https://v2.horsereality.com/user/38272',
     Karmaleon: 'https://v2.horsereality.com/user/8740',
-    aBREEviate: 'https://v2.horsereality.com/user/86694',
-    thanksbutnah: 'https://v2.horsereality.com/user/53147',
-    Yumy: 'https://v2.horsereality.com/user/100782',
-    KitKat: 'https://v2.horsereality.com/user/66435',
-    Aca: 'https://v2.horsereality.com/user/70318',
+    'Kit-Kat': 'https://v2.horsereality.com/user/66435',
     Linn: 'https://v2.horsereality.com/user/136244',
-    Nagapie: 'https://v2.horsereality.com/user/39129',
     LunaSommer: 'https://v2.horsereality.com/user/131121',
-    Falida: 'https://v2.horsereality.com/user/18825'
+    LynxVagabond: 'https://v2.horsereality.nl/user/5797',
+    Nagapie: 'https://v2.horsereality.com/user/39129',
+    thanksbutnah: 'https://v2.horsereality.com/user/53147',
+    Yumy: 'https://v2.horsereality.com/user/100782'
+}
+
+function Credit(name, breeds) {
+    const url = users[name]
+    return (
+        e('li', null,
+            e('p', {className: 'disclaimer'},
+                e('a', {target: '_blank', href: url}, name),
+                `: ${breeds}`
+            )
+        )
+    )
 }
 
 const dataCreditsModal = e(Modal, {
@@ -49,28 +62,28 @@ const dataCreditsModal = e(Modal, {
     children: [
         e('p', {className: 'disclaimer'}, 'Many thanks to the following individuals who have created color guides and/or volunteered to collect data for this site.'),
         e('ul', null,
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.aBREEviate}, 'aBREEviate'), ': Knabstrupper, PRE')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Aca}, 'Aca'), ': Thoroughbred')),    
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Allendria}, 'Allendria'), ': Irish Cob')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.ArufaurufuChan}, 'ArufaurufuChan'), ': Icelandic, Trakehner')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Casper}, 'Casper'), ': Brumby')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.DarkCornelius}, 'Dark-Cornelius'), ': Camargue, Cleveland, Fjord, Mustang, Suffolk Punch, Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Equestrian}, '--Equestrian--'), ': Brabant, PRE, Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Falida}, 'Falida'), ': Oldenburg')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Foam}, 'Foam'), ': Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.JessaB}, 'JessaB'), ': Quarter Horse, Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Karmaleon}, 'Karmaleon'), ': PRE')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.KitKat}, 'Kit-Kat'), ': Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Linn}, 'Linn'), ': Arabian, Irish Cob')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.LunaSommer}, 'LunaSommer'), ': Knabstrupper')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.LynxVagabond}, 'LynxVagabond'), ': Friesian, Shire, Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Nagapie}, 'Nagapie'), ': Arabian')),
-            e('li', null, e('p', {className: 'disclaimer'}, 'Ruttis: Thoroughbred')),
-            e('li', null, e('p', {className: 'disclaimer'}, 'silfurskin: Camargue, Kladruber, Norman Cob')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.thanksbutnah}, 'thanksbutnah'), ': Brumby')),
-            e('li', null, e('p', {className: 'disclaimer'}, e('a', {target: '_blank', href: users.Yumy}, 'Yumy'), ': Brumby'))
+            Credit('aBREEviate', 'Knabstrupper, PRE'),
+            Credit('Aca', 'Thoroughbred'),
+            Credit('Allendria', 'Irish Cob'),
+            Credit('ArufaurufuChan', 'Icelandic, Trakehner'),
+            Credit('Casper', 'Brumby'),
+            Credit('Dark-Cornelius', 'Camargue, Cleveland, Fjord, Mustang, Suffolk Punch, Thoroughbred'),
+            Credit('--Equestrian--', 'Brabant, PRE, Thoroughbred'),
+            Credit('Falida', 'Oldenburg'),
+            Credit('Foam', 'Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony'),
+            Credit('JessaB', 'Quarter Horse, Thoroughbred'),
+            Credit('Karmaleon', 'PRE'),
+            Credit('Kit-Kat', 'Thoroughbred'),
+            Credit('Linn', 'Arabian, Irish Cob'),
+            Credit('LunaSommer', 'Knabstrupper'),
+            Credit('LynxVagabond', 'Friesian, Shire, Thoroughbred'),
+            Credit('Nagapie', 'Arabian'),
+            Credit('Ruttis', 'Thoroughbred'),
+            Credit('silfurskin', 'Camargue, Kladruber, Norman Cob'),
+            Credit('thanksbutnah', 'Brumby'),
+            Credit('Yumy', 'Brumby')
         ),
-        e('p', {className: 'disclaimer'}, 'Special thanks to ', e('a', {target: '_blank', href: 'https://v2.horsereality.com/user/12669'}, 'Foam'), ', who contributed to the majority of our available breeds.')
+        e('p', {className: 'disclaimer'}, 'Special thanks to ', e('a', {target: '_blank', href: users.Foam}, 'Foam'), ', who contributed to the majority of our available breeds.')
     ]
 });
 
@@ -221,7 +234,7 @@ async function predictFoal() {
     const horse_url_input = document.querySelector('#horse-url');
     const horse_url = horse_url_input.value;
     if (!horse_url) {
-        alert('Input box must not be empty.')
+        showError('Input box must not be empty.')
         return
     }
     horse_url_input.value = null;
@@ -235,7 +248,7 @@ async function predictFoal() {
     });
     const data = await response.json();
     if (!response.ok) {
-        alert(data.message);
+        showError(data.message);
         return
     }
 
@@ -253,7 +266,7 @@ async function predictFoal() {
 
 async function importMulti() {
     if (!currentHorseLayerData) {
-        alert('No horse is present.');
+        showError('No horse is present.');
         return
     }
     const encodedData = base64UrlEncode(JSON.stringify(currentHorseLayerData));

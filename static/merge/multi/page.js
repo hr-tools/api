@@ -1,5 +1,6 @@
 import Footer from '/static/footer.js';
 import {modals, spawnModal} from '/static/modal.js';
+import {showError} from '/static/errors.js';
 import {emoji} from '/static/symbols.js';
 import {getUseWatermark} from '/static/cookies.js';
 import {base64Decode} from '/static/base64.js';
@@ -198,7 +199,7 @@ function addBox(data) {
 
 async function getLayers() {
     if (layerBoxes.length >= 6) {
-        alert('Maximum number of horses per page reached.');
+        showError('Maximum number of horses per page reached.');
         document.getElementById('horse-url').value = null;
         return
     }
@@ -206,7 +207,7 @@ async function getLayers() {
     document.getElementById('horse-url').value = null;
 
     if (!horse_url) {
-        alert('Input box must not be empty.');
+        showError('Input box must not be empty.');
         return
     }
 
@@ -217,13 +218,11 @@ async function getLayers() {
     });
     const data = await response.json();
     if (!response.ok) {
-        alert(data.message);
+        showError(data.message);
         return
-    } else {
-        //document.getElementById('error-box').style.display = 'none';
     }
     if (usedIds.indexOf(data.id) >= 0) {
-        alert(data.name + ' is already being used on this page.');
+        showError(data.name + ' is already being used on this page.');
         return
     }
     addBox(data);
@@ -235,7 +234,7 @@ async function merge() {
         displayError('No layers to merge.');
         return
     } else if (previewImages.length == 1) {
-        alert('Only one layer is present.')
+        showError('Only one layer is present.')
         return
     }
 
@@ -264,7 +263,7 @@ function loadMain() {
 
 async function sharePage() {
     if (!layerBoxes) {
-        alert('Nothing to share.');
+        showError('Nothing to share.');
         return
     }
     const layersData = [];
@@ -314,7 +313,7 @@ async function loadCheckShare() {
     const response = await fetch(`/api/multi-share/${shareId}`, {method: 'GET'});
     const data = await response.json();
     if (!response.ok) {
-        alert(data.message);
+        showError(data.message);
         return false
     }
 
