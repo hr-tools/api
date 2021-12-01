@@ -37,6 +37,10 @@ class SheetParser:
             'stallion': ['tail', 'body', 'mane'],
             'mare': ['tail', 'body', 'mane']
         },
+        'finnhorse': {
+            'stallion': ['tail', 'body', 'mane'],
+            'mare': ['tail', 'body', 'mane']
+        },
         'fjord_horse': {
             'stallion': ['body', 'tail', 'mane'],
             'mare': ['body', 'tail', 'mane']
@@ -64,6 +68,10 @@ class SheetParser:
         'knabstrupper': {
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
+        },
+        'lusitano': {
+            'stallion': ['body', 'mane', 'tail'],
+            'mare': ['tail', 'body', 'mane']
         },
         'mustang_horse': {
             'stallion': ['body', 'mane', 'tail'],

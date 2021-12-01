@@ -44,10 +44,6 @@ white_pattern_reserves = {
         }
     },
     'finnhorse': {
-        'SW1': {
-            'stallion': {},
-            'mare': {}
-        },
         'SW1/SW1': {
             'stallion': {'body': '32ecb3064'},
             'mare': {'body': '32ecb3064'}
@@ -57,8 +53,32 @@ white_pattern_reserves = {
             'mare': {'body': '26a086ea0'}
         },
         'rab/rab': {
-            'stallion': {},
-            'mare': {}
+            'stallion': {'body': '9adcd47e5', 'tail': '07b53e4e9'},
+            'mare': {'body': '9adcd47e0', 'tail': '9adcd47e8'}
+        },
+        'SW1': {
+            'stallion': {'body': 'fa616ab64'},
+            'mare': {'body': 'fa616ab69'}
+        },
+        'SW1 rab/rab': {
+            'stallion': {'body': '4d9cddaa8', 'tail': '4d9cddaa8'},
+            'mare': {'body': '4d9cddaa2', 'tail': '4d9cddaa3'}
+        },
+        'SW1/SW1': {
+            'stallion': {'body': '4b3df6d06', 'tail': '4b3df6d07'},
+            'mare': {'body': '4b3df6d07', 'tail': '4b3df6d09'}
+        },
+        'sab2/sab2': {
+            'stallion': {'body': '95ce15bb2'},
+            'mare': {'body': 'b4dd6ec31'}
+        },
+        'SW1 sab2/sab2': {
+            'stallion': {'body': '36808cac4'},
+            'mare': {'body': '36808cac7'}
+        },
+        'SW1/SW1 sab2/sab2': {
+            'stallion': {'body': '1d6bdb620', 'tail': '1d6bdb620'},
+            'mare': {'body': '772eb1c19', 'tail': '772eb1c19'}
         }
     },
     'icelandic_horse': {
@@ -278,7 +298,6 @@ breed_translations = {
     'Haflinger': 'Haflinger Horse',
     'IJslander': 'Icelandic Horse',
     'Kladruber': 'Kladruber Horse',
-    'Lusitano': 'Lusitano Horse',
     'Noriker': 'Noriker Horse',
     'Normandische Cob': 'Norman Cob',
     'Oldenburger': 'Oldenburg Horse',

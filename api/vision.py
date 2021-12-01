@@ -230,7 +230,7 @@ async def predict(request):
             'rabicano', 'sabino2'
         ]
         gene_name_overrides = {
-            'SW1/SW1': 'Double Splash White',
+            'SW1/SW1': 'Double Splash',
             'TO/TO': 'Homozygous Tobiano'
         }
         gene_values = {}
@@ -268,6 +268,16 @@ async def predict(request):
             gene_values.pop('SW1')
             gene_values.pop('TO/TO')
             gene_values['SW1 TO/TO'] = 'Splash Homozygous Tobiano'
+
+        if gene_values.get('SW1') and gene_values.get('rab/rab'):
+            gene_values.pop('SW1')
+            gene_values.pop('rab/rab')
+            gene_values['SW1 rab/rab'] = 'Splash Rabicano'
+
+        if gene_values.get('SW1') and gene_values.get('sab2/sab2'):
+            gene_values.pop('SW1')
+            gene_values.pop('sab2/sab2')
+            gene_values['SW1 sab2/sab2'] = 'Splash Sabino2'
 
         if gene_values.get('SW1/SW1') and gene_values.get('TO'):
             gene_values.pop('SW1/SW1')

@@ -31,6 +31,7 @@ const users = {
     ArufaurufuChan: 'https://v2.horsereality.com/user/104991',
     Casper: 'https://v2.horsereality.com/user/2743',
     DarkCornelius: 'https://v2.horsereality.com/user/30403',
+    Dreepy: 'https://v2.horsereality.com/user/49048',
     '--Equestrian--': 'https://v2.horsereality.com/user/45061',
     Falida: 'https://v2.horsereality.com/user/18825',
     Foam: 'https://v2.horsereality.com/user/12669',
@@ -41,7 +42,9 @@ const users = {
     LunaSommer: 'https://v2.horsereality.com/user/131121',
     LynxVagabond: 'https://v2.horsereality.nl/user/5797',
     Nagapie: 'https://v2.horsereality.com/user/39129',
+    Sarah_The_Candle: 'https://v2.horsereality.com/user/150678',
     thanksbutnah: 'https://v2.horsereality.com/user/53147',
+    Villy: 'https://v2.horsereality.com/user/115389',
     Yumy: 'https://v2.horsereality.com/user/100782'
 }
 
@@ -68,6 +71,7 @@ const dataCreditsModal = e(Modal, {
             Credit('ArufaurufuChan', 'Icelandic, Trakehner'),
             Credit('Casper', 'Brumby'),
             Credit('Dark-Cornelius', 'Camargue, Cleveland, Fjord, Mustang, Suffolk Punch, Thoroughbred'),
+            Credit('Dreepy', 'Lusitano'),
             Credit('--Equestrian--', 'Brabant, PRE, Thoroughbred'),
             Credit('Falida', 'Oldenburg'),
             Credit('Foam', 'Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony'),
@@ -77,10 +81,12 @@ const dataCreditsModal = e(Modal, {
             Credit('Linn', 'Arabian, Irish Cob'),
             Credit('LunaSommer', 'Knabstrupper'),
             Credit('LynxVagabond', 'Friesian, Shire, Thoroughbred'),
-            Credit('Nagapie', 'Arabian'),
+            Credit('Nagapie', 'Arabian, Finnhorse'),
             Credit('Ruttis', 'Thoroughbred'),
             Credit('silfurskin', 'Camargue, Kladruber, Norman Cob'),
-            Credit('thanksbutnah', 'Brumby'),
+            Credit('Sarah_The_Candle', 'Finnhorse'),
+            Credit('thanksbutnah', 'Brumby, Lusitano'),
+            Credit('Villy', 'Lusitano'),
             Credit('Yumy', 'Brumby')
         ),
         e('p', {className: 'disclaimer'}, 'Special thanks to ', e('a', {target: '_blank', href: users.Foam}, 'Foam'), ', who contributed to the majority of our available breeds.')
