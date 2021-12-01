@@ -1,4 +1,4 @@
-import supportText from '/static/support.js';
+import {supportText, supportLink} from '/static/support.js';
 import {copyright}  from '/static/symbols.js';
 import {getUseWatermark, setCookie} from '/static/cookies.js';
 
@@ -114,7 +114,8 @@ const errorModal = e(Modal, {
     name: 'Error',
     color: '#F00000',
     children: [
-        e('p', {id: 'error-message'})
+        e('p', {id: 'error-message'}),
+        e('p', {id: 'error-message-subtitle'}, 'If this looks like it shouldn\'t have happened, please ', e('a', {href: supportLink, target: '_blank'}, 'report this to us on our Discord server'), '.')
     ]
 })
 

@@ -2,7 +2,7 @@ import Footer from '/static/footer.js';
 import {Modal, modals, spawnModal} from '/static/modal.js';
 import {showError} from '/static/errors.js';
 import {emoji} from '/static/symbols.js';
-import {getUseWatermark} from '/static/cookies.js';
+import {getCookie, setCookie, getUseWatermark} from '/static/cookies.js';
 import {base64UrlEncode} from '/static/base64.js';
 import {basicShare} from '/static/share.js';
 
@@ -305,4 +305,29 @@ async function loadCheckShare() {
 }
 
 loadMain();
+if (getCookie('realtools-realvision-has-read-popup') != 'true') {
+    spawnModal(e(Modal, {
+        name: 'Welcome to Realvision',
+        children: [
+            e('p', null, 'It seems that this is your first time here, so there are a few things you need to know to be able to use Realvision to its fullest extent.'),
+            e('br'),
+            e('p', null, `Please click the ${emoji.warning} Disclaimers button, to the far left of the ${emoji.crystal_ball} Predict button, for essential information on how Realvision works.`),
+            e('br'),
+            e('p', null, `The ${emoji.man_technologist} Data Credits button lists all the people that helped to make Realvision possible.`),
+            e('br'),
+            e('p', null, 'Finally, the gear icon on the bottom right allows you to modify the website\'s settings, and the Credits button links you to some information on who made Realtools as well as some support info.'),
+            e('br'),
+            e('p', null, 'Please click "I understand" if you have read and understood all of the above text, and this popup will be out of your way forever.'),
+            e('button', {
+                style: {margin: 'auto', marginTop: '15px'},
+                onClick: (event) => {
+                    setCookie({name: 'realtools-realvision-has-read-popup', value: 'true'})
+                    ReactDOM.unmountComponentAtNode(event.target.parentNode.parentNode.parentNode)
+                }
+            },
+                'I understand'
+            )
+        ]
+    }))
+}
 loadCheckShare();

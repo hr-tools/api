@@ -267,6 +267,8 @@ input.horse-url {
     width: 400px;
     margin: auto;
     text-align: left;
+    overflow-y: scroll;
+    max-height: 80vh;
 }
 
 .box.modal h1 {
