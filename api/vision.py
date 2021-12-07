@@ -183,7 +183,7 @@ async def predict(request):
                 'white_reserves': []
             }
             base_genes = row['base_genes']
-            data['details']['dilution'] = (base_genes + ' ' + (row['dilution'] if row['dilution'].lower() != 'no dilution' else '')) or None
+            data['details']['dilution'] = (base_genes + ' ' + (row['dilution'] if row['dilution'] and row['dilution'].lower() != 'no dilution' else '')) or None
             data['details']['color'] = row['color']
 
     if not urls_data or 'body' not in urls_data:
@@ -343,7 +343,7 @@ async def predict(request):
         )
         mane_id = urls_data['mane']['colours_id']
         for index, row in enumerate(possible_layer_rows):
-            if row[f'{sex}_id'] == mane_id:
+            if row[f'{sex}_id'] == mane_id and row['body_part'] == 'mane':
                 tail_row = possible_layer_rows[index+1]
                 adult_id = tail_row[f'{sex}_id']
                 url = f'https://www.horsereality.com/upload/colours/{sex}s/tail/large/{adult_id}.png'
