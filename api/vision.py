@@ -216,7 +216,7 @@ async def predict(request):
             overwrite_info_display('E')
             overwrite_info_display('E G')
 
-        elif genes_extension == 'E/e' and genes_extension == 'A/a':
+        elif genes_extension == 'E/e' and genes_agouti == 'A/a':
             # bay
             overwrite_info_display('E A')
             overwrite_info_display('E A G')
