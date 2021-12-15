@@ -168,7 +168,8 @@ async def predict(request):
             # append to the color name
             if testable:
                 white_pattern_color_name = row['color']
-                white_pattern_genotype_names.add(row['white_gene'])
+                if row['white_gene']:
+                    white_pattern_genotype_names.add(row['white_gene'])
 
     urls_data = {}
     for row in colour_layer_rows:
@@ -213,8 +214,8 @@ async def predict(request):
 
         elif genes_extension == 'E/e' and (genes_agouti == 'a/a' or genes_agouti is None):
             # black
-            overwrite_info_display('E')
-            overwrite_info_display('E G')
+            overwrite_info_display('E aa')
+            overwrite_info_display('E aa G')
 
         elif genes_extension == 'E/e' and genes_agouti == 'A/a':
             # bay
