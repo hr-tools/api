@@ -156,6 +156,25 @@ white_pattern_reserves = {
             'mare': {'body': 'a6ed4dc95', 'mane': '9890c3654'}
         }
     },
+    'noriker_horse': {
+        'RN': {
+            'stallion': {'body': '25f231e53'},
+            'mare': {'body': '5c51235c8'}
+        },
+        'TO': {
+            'stallion': {'body': 'b4858d809', 'mane': 'b3acc6951', 'tail': 'f8f03d4f7'},
+            'mare': {'body': '236c4be48', 'mane': '6ad2b7486', 'tail': '6ad2b7483'}
+        },
+        'TO/TO': {
+            # this is copied from TO because there is no dedicated art for homozygous tobiano
+            'stallion': {'body': 'b4858d809', 'mane': 'b3acc6951', 'tail': 'f8f03d4f7'},
+            'mare': {'body': '236c4be48', 'mane': '6ad2b7486', 'tail': '6ad2b7483'}
+        },
+        'sab2/sab2': {
+            'stallion': {'body': 'ec6b68635'},
+            'mare': {'body': 'ec3f4f641'}
+        }
+    },
     'oldenburg_horse': {
         'TO': {
             'stallion': {'body': '46869d977', 'mane': 'ea112e255', 'tail': '9d2e56d98'},
@@ -243,6 +262,10 @@ white_pattern_reserves = {
         'OLW': {
             'stallion': {'body': 'ec8b59391', 'mane': 'ec8b59396'},
             'mare': {'body': 'c06b3d2c7', 'mane': 'c06b3d2c5'}
+        },
+        'rab/rab': {
+            'stallion': {'body': '984102bc0', 'tail': '984102bc6'},
+            'mare': {'body': '55149ebb1', 'tail': 'f1e82ee63'}
         }
     },
     'welsh_pony': {

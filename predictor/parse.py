@@ -77,6 +77,10 @@ class SheetParser:
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
         },
+        'noriker_horse': {
+            'stallion': ['body', 'mane', 'tail'],
+            'mare': ['body', 'mane', 'tail']
+        },
         'norman_cob': {
             'stallion': ['body', 'mane', 'tail'],
             'mare': ['body', 'mane', 'tail']
