@@ -34,7 +34,7 @@ class SheetParser:
             'mare': ['body', 'mane', 'tail']
         },
         'exmoor_pony': {
-            'stallion': ['tail', 'body', 'mane'],
+            'stallion': ['body', 'mane', 'tail'],
             'mare': ['tail', 'body', 'mane']
         },
         'finnhorse': {
