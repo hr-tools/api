@@ -76,7 +76,7 @@ const dataCreditsModal = e(Modal, {
             Credit('Dreepy', 'Lusitano'),
             Credit('--Equestrian--', 'Brabant, PRE, Thoroughbred'),
             Credit('Falida', 'Oldenburg'),
-            Credit('Foam', 'Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony'),
+            Credit('Foam', 'Arabian, Camargue, Exmoor, Fjord, Haflinger, Icelandic, Norman Cob, Oldenburg, PRE, Shire, Thoroughbred, Welsh Pony'),
             Credit('JessaB', 'Noriker, Quarter Horse, Thoroughbred'),
             Credit('Karmaleon', 'PRE'),
             Credit('Kit-Kat', 'Thoroughbred'),
