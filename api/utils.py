@@ -325,6 +325,6 @@ breed_translations = {
     'Normandische Cob': 'Norman Cob',
     'Oldenburger': 'Oldenburg Horse',
     'Shire': 'Shire Horse',
-    'Tinker': 'Irish Cob',
+    'Tinker': 'Irish Cob Horse',
     'Trakehner': 'Trakehner Horse'
 }
