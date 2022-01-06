@@ -315,7 +315,7 @@ breed_translations = {
     'Brumby': 'Brumby Horse',
     'Camargue': 'Camargue Horse',
     'Engels Volbloed': 'Thoroughbred',
-    'Fins Paarde': 'Finnhorse',
+    'Fins paard': 'Finnhorse',
     'Fjord': 'Fjord Horse',
     'Fries': 'Friesian Horse',
     'Haflinger': 'Haflinger Horse',
