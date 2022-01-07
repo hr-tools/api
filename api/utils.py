@@ -186,36 +186,6 @@ white_pattern_reserves = {
             'mare': {'body': 'a68d8d825', 'mane': 'e14a80179', 'tail': '46869d976'}
         }
     },
-    'trakehner_horse': {
-        'RN': {
-            'stallion': {'body': '567692d74'},
-            'mare': {'body': '4ce789df8'}
-        },
-        'SW1': {
-            'stallion': {'body': 'fb5bbfe85'},
-            'mare': {'body': '877293bc7'}
-        },
-        'TO': {
-            'stallion': {'body': 'b0b1e6256', 'mane': 'b0b1e6253'},
-            'mare': {'body': 'b0b1e6256', 'mane': 'b0b1e6259'}
-        },
-        'TO/TO': {
-            'stallion': {'body': '97b7ab377', 'mane': '165ae46f1', 'tail': '165ae46f3'},
-            'mare': {'body': '774c49666', 'mane': '774c49668', 'tail': '774c49663'}
-        },
-        'SW1 TO': {
-            'stallion': {'body': 'dea811554', 'mane': 'dea811551', 'tail': 'dea811553'},
-            'mare': {'body': '96e7b1a27', 'mane': '5c242e864', 'tail': '5c242e861'}
-        },
-        'SW1/SW1 TO': {
-            'stallion': {'body': '90c425889', 'mane': 'ae30207d6', 'tail': 'ae30207d0'},
-            'mare': {'body': '73bc49b66', 'tail': '73bc49b68'}
-        },
-        'SW1 TO/TO': {
-            'stallion': {'body': '574a81ce9', 'mane': 'cc01deab4', 'tail': 'cc01deab3'},
-            'mare': {'body': 'fe7cbfbd9', 'mane': 'fe7cbfbd0', 'tail': 'fe7cbfbd1'}
-        }
-    },
     'pura_raza_española': {
         'rab/rab': {
             'stallion': {'body': 'f98ca9b17', 'tail': 'f98ca9b14'},
@@ -264,8 +234,38 @@ white_pattern_reserves = {
             'mare': {'body': 'c06b3d2c7', 'mane': 'c06b3d2c5'}
         },
         'rab/rab': {
-            'stallion': {'body': '984102bc0', 'tail': '984102bc6'},
-            'mare': {'body': '55149ebb1', 'tail': 'f1e82ee63'}
+            'stallion': {'body': '5bd0eee21', 'tail': '5bd0eee28'},
+            'mare': {'body': '3321ed288', 'tail': 'a82d6cab8'}
+        }
+    },
+    'trakehner_horse': {
+        'RN': {
+            'stallion': {'body': '567692d74'},
+            'mare': {'body': '4ce789df8'}
+        },
+        'SW1': {
+            'stallion': {'body': 'fb5bbfe85'},
+            'mare': {'body': '877293bc7'}
+        },
+        'TO': {
+            'stallion': {'body': 'b0b1e6256', 'mane': 'b0b1e6253'},
+            'mare': {'body': 'b0b1e6256', 'mane': 'b0b1e6259'}
+        },
+        'TO/TO': {
+            'stallion': {'body': '97b7ab377', 'mane': '165ae46f1', 'tail': '165ae46f3'},
+            'mare': {'body': '774c49666', 'mane': '774c49668', 'tail': '774c49663'}
+        },
+        'SW1 TO': {
+            'stallion': {'body': 'dea811554', 'mane': 'dea811551', 'tail': 'dea811553'},
+            'mare': {'body': '96e7b1a27', 'mane': '5c242e864', 'tail': '5c242e861'}
+        },
+        'SW1/SW1 TO': {
+            'stallion': {'body': '90c425889', 'mane': 'ae30207d6', 'tail': 'ae30207d0'},
+            'mare': {'body': '73bc49b66', 'tail': '73bc49b68'}
+        },
+        'SW1 TO/TO': {
+            'stallion': {'body': '574a81ce9', 'mane': 'cc01deab4', 'tail': 'cc01deab3'},
+            'mare': {'body': 'fe7cbfbd9', 'mane': 'fe7cbfbd0', 'tail': 'fe7cbfbd1'}
         }
     },
     'welsh_pony': {
