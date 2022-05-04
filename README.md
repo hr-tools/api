@@ -35,7 +35,7 @@ Specify the `address:port` that the webserver runs on. Defaults to `localhost:29
 
 ### `redis` (optional)
 
-A redis address to store share IDs. Share IDs last for 1 week, but this may be changed in the [`api.merge.share`](api/merge.py) function.
+A redis address to store share IDs. Share IDs last for 1 week, but this may be changed in the [`api.merge.create_share_link`](api/v2/merge.py) function.
 
 ### `log` (optional)
 
