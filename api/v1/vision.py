@@ -13,7 +13,7 @@ from sanic import response as r
 from .utils import dissect_layer_path, white_pattern_reserves
 import predictor
 
-api = sanic.Blueprint('Vision API')
+api = sanic.Blueprint('Vision-v1')
 
 config = json.load(open('config.json'))
 run_address = config.get('address', 'localhost')
@@ -35,12 +35,12 @@ async def predict(request):
     if not isinstance(use_watermark, bool):
         return r.json({'message': 'Invalid type for watermark.'}, status=400)
 
-    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{1,10})\/', url)
+    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com)\/horses\/(\d{1,10})\/', url)
     if not match:
         return r.json({'message': 'Invalid URL.'}, status=400)
 
     # fetch layers
-    response = await request.app.ctx.session.post(f'http://{run_address}:{run_port}/api/layers', json={'url': url, 'use_foal': True})
+    response = await request.app.ctx.session.post(f'http://{run_address}:{run_port}/v1/layers', json={'url': url, 'use_foal': True})
     data = await response.json()
     if response.status >= 400:
         return r.json(data, status=response.status)
@@ -184,7 +184,7 @@ async def predict(request):
                 'white_reserves': []
             }
             base_genes = row['base_genes']
-            data['details']['dilution'] = (base_genes + ' ' + (row['dilution'] if row['dilution'] and row['dilution'].lower() != 'no dilution' else '')) or None
+            data['details']['dilution'] = (base_genes + ' ' + (row['dilution'] if row['dilution'].lower() != 'no dilution' else '')) or None
             data['details']['color'] = row['color']
 
     if not urls_data or 'body' not in urls_data:
@@ -368,7 +368,7 @@ async def predict(request):
                 complete_urls.append(white_url)
 
     # merge
-    response = await request.app.ctx.session.post(f'http://{run_address}:{run_port}/api/merge/multiple', json={'urls': complete_urls, 'watermark': use_watermark})
+    response = await request.app.ctx.session.post(f'http://{run_address}:{run_port}/v1/merge/multiple', json={'urls': complete_urls, 'watermark': use_watermark})
     merged_data = await response.json()
     if response.status >= 400:
         return r.json(merged_data, status=response.status)

@@ -69,8 +69,8 @@ white_pattern_reserves = {
             'mare': {'body': '4b3df6d07', 'tail': '4b3df6d09'}
         },
         'sab2/sab2': {
-            'stallion': {'body': '95ce15bb2'},
-            'mare': {'body': 'b4dd6ec31'}
+            'stallion': {'body': '49d8b0b89'},
+            'mare': {'body': '49d8b0b80'}
         },
         'SW1 sab2/sab2': {
             'stallion': {'body': '36808cac4'},
@@ -255,6 +255,10 @@ white_pattern_reserves = {
             'stallion': {'body': '97b7ab377', 'mane': '165ae46f1', 'tail': '165ae46f3'},
             'mare': {'body': '774c49666', 'mane': '774c49668', 'tail': '774c49663'}
         },
+        'SW1/SW1': {
+            'stallion': {'body': '01913e555'},
+            'mare': {'body': 'f38df15e8'}
+        },
         'SW1 TO': {
             'stallion': {'body': 'dea811554', 'mane': 'dea811551', 'tail': 'dea811553'},
             'mare': {'body': '96e7b1a27', 'mane': '5c242e864', 'tail': '5c242e861'}
@@ -315,7 +319,7 @@ breed_translations = {
     'Brumby': 'Brumby Horse',
     'Camargue': 'Camargue Horse',
     'Engels Volbloed': 'Thoroughbred',
-    'Fins paard': 'Finnhorse',
+    'Fins Paarde': 'Finnhorse',
     'Fjord': 'Fjord Horse',
     'Fries': 'Friesian Horse',
     'Haflinger': 'Haflinger Horse',

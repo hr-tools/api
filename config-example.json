@@ -1,20 +1,18 @@
 {
     "address": "localhost",
     "port": 2965,
+    "debug": false,
     "authentication": {
         "com": {
             "email": "email@horsereality.com",
             "password": "password123"
-        },
-        "nl": {
-            "email": "email@horsereality.nl",
-            "password": "wachtwoord123"
         }
     },
-    "output": {
-        "name": "coolhorsepics",  // cooldomain.com/coolhorsepics/...
-        "path": "rendered"  // /home/shay/realmerge/rendered/...
-    },
     "redis": "redis://shay@localhost",
-    "log": "realtools-latest.log"
+    "postgres": {
+        "database": "realtools",
+        "user": "username",
+        "password": "password"
+    },
+    "log": "latest.log"
 }

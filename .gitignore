@@ -1,7 +1,4 @@
 __pycache__/
-rendered/
-rendered-multi/
 config.json
-output.json
 sheets/
 latest.log

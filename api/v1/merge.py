@@ -20,14 +20,14 @@ from .auth import relogin
 from .utils import dissect_layer_path, key_translations, breed_translations
 
 
-api = sanic.Blueprint('Merge API')
+api = sanic.Blueprint('Merge-v1')
 
 config = json.load(open('config.json'))
 if not config.get('authentication'):
     msg = 'You must have authentication values.'
     raise ValueError(msg)
-if not config['authentication'].get('com') and not config['authentication'].get('nl'):
-    msg = 'You must have authentication data for .com, .nl, or both.'
+if not config['authentication'].get('com'):
+    msg = 'You must have authentication data.'
     raise ValueError(msg)
 
 output_config = config.get('output', {})
@@ -139,31 +139,7 @@ def pil_process(horse_id, bytefiles, *, multi=False, use_watermark=True, left_wa
         data_str = data_str_bytes.decode(encoding='utf-8')
         return data_str
 
-    if multi is False:
-        path = output_path
-    else:
-        path = output_path_multi
-
-    if path is None:
-        # this instance's config said not to save images locally
-        return as_base64_data()
-
-    try:
-        local_route = f'{path}/{horse_id}.png'
-        new_image.save(local_route)
-    except PermissionError:
-        # couldn't save to local path (fix ur perms!), return as b64 anyway
-        # this is sort of implicit but I hope most people running this app will
-        # read the README and figure out the problem if they don't want this
-        return as_base64_data()
-
-    if multi is False:
-        route = output_route
-    else:
-        route = output_route_multi
-
-    web_route = f'/{output_route}/{horse_id}.png'
-    return web_route
+    return as_base64_data()
 
 @api.options('/merge')
 async def cors_preflight_merge(request):
@@ -197,7 +173,7 @@ async def merge_single(request):
     if not isinstance(use_watermark, bool):
         return r.json({'message': 'Invalid type for watermark'}, status=400)
 
-    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{1,10})\/', url)
+    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com)\/horses\/(\d{1,10})\/', url)
     # we require a trailing slash here because without it HR will redirect us
     # infinity times between v2 and www. this has been reported to deloryan
 
@@ -210,38 +186,18 @@ async def merge_single(request):
     _id = match.group(3)
     tld = match.group(2)
 
-    # check if we've already merged this horse
-    # this might cause issues if the same horse ever changes appearance,
-    # i'm not sure how that works exactly. maybe a checkbox could be added to
-    # merge anyway
-    if output_path is None or os.path.exists(f'{output_path}/{_id}.png'):
-        pass
-    else:
-        # unfortunately we don't get to return the title like this since we
-        # never actually fetch the page, but it's just flair anyway. you could
-        # parse it from the URL but that would be spotty at best since it's
-        # not actually required
-        return r.json({
-            'message': 'Success (already merged).',
-            'name': None,
-            'horse_url': f'/{output_route}/{_id}.png',
-            'original_url': url
-        }, status=200, headers={'Access-Control-Allow-Origin': '*'})
-
     authconfig = config['authentication'].get(tld)
     if not authconfig:
         return r.json({
             'message': 'This server is not supported by this instance of '
                 'Realtools, or it has not been configured properly.'
         }, status=500, headers={'Access-Control-Allow-Origin': '*'})
-    if authconfig.get('cookie'):
-        cookie = authconfig.get('cookie')
-    else:
-        cookie = await relogin(tld, request.app.ctx.session)
+
+    cookie = await relogin(request.app.ctx.hr)
 
     page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
     if page_response.status != 200:
-        cookie = await relogin(tld, request.app.ctx.session)
+        cookie = await relogin(request.app.ctx.hr)
         page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
 
     html_text = await page_response.text()
@@ -250,7 +206,7 @@ async def merge_single(request):
     try:
         layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
         if not layers:
-            await relogin(tld, request.app.ctx.session)
+            await relogin(request.app.ctx.hr)
             layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
 
         page_title = (await loop.run_in_executor(None, get_page_horse_meta, html_text))['title']
@@ -324,13 +280,13 @@ async def merge_single(request):
 async def get_layers(request):
     payload = request.json
     if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
+        return r.json({'message': 'Invalid request.'}, status=400)
 
     url = payload.get('url')
     if not url:
-        return r.json({'message': 'Invalid request.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
+        return r.json({'message': 'Invalid request.'}, status=400)
 
-    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/horses\/(\d{1,10})\/', url)
+    match = re.match(r'https:\/\/(v2\.|www\.)?horsereality\.(com)\/horses\/(\d{1,10})\/', url)
     # we require a trailing slash here because without it HR will redirect us
     # infinity times between v2 and www. this has been reported to deloryan
 
@@ -338,26 +294,22 @@ async def get_layers(request):
     # but hey whatever
 
     if not match:
-        return r.json({'message': 'Invalid URL.'}, status=400, headers={'Access-Control-Allow-Origin': '*'})
+        return r.json({'message': 'Invalid URL.'}, status=400)
 
     _id = match.group(3)
     tld = match.group(2)
 
     authconfig = config['authentication'].get(tld)
     if not authconfig:
-        return r.json(
-            {'message': f'This server (.{tld}) is not supported by this instance of Realtools, or it has not been configured properly.'},
-            status=500,
-            headers={'Access-Control-Allow-Origin': '*'}
-        )
+        return r.json({'message': f'This server (.{tld}) is not supported by this instance of Realtools, or it has not been configured properly.'}, status=500)
     if authconfig.get('cookie'):
         cookie = authconfig.get('cookie')
     else:
-        cookie = await relogin(tld, request.app.ctx.session)
+        cookie = await relogin(request.app.ctx.hr)
 
     page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
     if page_response.status != 200:
-        cookie = await relogin(tld, request.app.ctx.session)
+        cookie = await relogin(request.app.ctx.hr)
         page_response = await request.app.ctx.session.get(url, headers={'Cookie': f'horsereality={cookie}'})
 
     html_text = await page_response.text()
@@ -365,13 +317,13 @@ async def get_layers(request):
     try:
         layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
         if not layers:
-            await relogin(tld, request.app.ctx.session)
+            await relogin(request.app.ctx.hr)
             layers = await loop.run_in_executor(None, get_page_image_urls, html_text)
 
         horse_info = await loop.run_in_executor(None, get_page_horse_meta, html_text)
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to get image URLs.'}, status=500, headers={'Access-Control-Allow-Origin': '*'})
+        return r.json({'message': 'Failed to get image URLs.'}, status=500)
 
     # we serve small urls as well as large urls because I was working on this
     # feature on a mobile connection and realized how long each image took to
@@ -413,8 +365,7 @@ async def get_layers(request):
             'details': horse_info,
             'layers': layers_sized
         },
-        status=200,
-        headers={'Access-Control-Allow-Origin': '*'}
+        status=200
     )
 
 @api.post('/merge/multiple')
@@ -427,21 +378,33 @@ async def merge_multiple(request):
     if not urls or not isinstance(urls, list):
         return r.json({'message': 'Invalid request.'}, status=400)
 
-    url_regex = re.compile(r'https:\/\/(v2\.|www\.)?horsereality\.(com|nl)\/upload\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z0-9]+\.png')
+    url_regex = re.compile(r'https:\/\/(v2\.|www\.)?horsereality\.(com)\/upload\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z]+\/[a-z0-9]+\.png')
     bytefiles = []
     for url in urls:
         if not url:
             continue
         match = url_regex.match(url)
         if not match:
-            return r.json({'message': f'Incorrectly formatted URL at position {urls.index(url)}.'}, status=400)
+            return r.json(
+                {'message': f'Incorrectly formatted URL at position {urls.index(url)}.'},
+                status=400,
+                headers={'Access-Control-Allow-Origin': '*'}
+            )
 
         try:
             img_response = await request.app.ctx.session.get(url)
         except aiohttp.client_exceptions.TooManyRedirects:
-            return r.json({'message': f'404 when fetching URL at position {urls.index(url)}: {url}'}, status=400)
+            return r.json(
+                {'message': f'404 when fetching URL at position {urls.index(url)}: {url}'},
+                status=400,
+                headers={'Access-Control-Allow-Origin': '*'}
+            )
         if img_response.status >= 400:
-            return r.json({'message': f'{img_response.status} when fetching URL at position {urls.index(url)}: {url}'}, status=400)
+            return r.json(
+                {'message': f'{img_response.status} when fetching URL at position {urls.index(url)}: {url}'},
+                status=400,
+                headers={'Access-Control-Allow-Origin': '*'}
+            )
 
         img_data = await img_response.read()
         bytefiles.append(img_data)
@@ -452,14 +415,19 @@ async def merge_multiple(request):
         merged_url = await loop.run_in_executor(None, partial(pil_process, random_id, bytefiles, multi=True, use_watermark=payload.get('watermark', True), left_watermark='foals' in urls[0]))
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to merge images.'}, status=500)
+        return r.json(
+            {'message': 'Failed to merge images.'},
+            status=500,
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
 
     return r.json(
         {
             'message': 'Success.',
             'url': merged_url
         },
-        status=201
+        status=201,
+        headers={'Access-Control-Allow-Origin': '*'}
     )
 
 @api.get(r'/multi-share/<share_id:(\d{10})>')

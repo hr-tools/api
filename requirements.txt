@@ -1,5 +1,6 @@
 aiohttp
-aioredis
-beautifulsoup4
+asyncpg
+redis>=4.2.0rc1
 Pillow
-sanic
+sanic[ext]
+git+https://github.com/hr-tools/horsereality
