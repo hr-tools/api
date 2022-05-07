@@ -76,23 +76,23 @@ def pil_process(bytefiles, *, use_watermark=True, left_watermark=False):
     return data_str
 
 
-@api.options('/merge')
-@api.options('/merge/multiple')
-@api.options('/layers')
-async def cors_preflights(request):
+def cors_headers(request: sanic.Request):
     origin = request.headers.get('Origin')
     if origin in [
         'https://www.horsereality.com',
         'https://v2.horsereality.com',
     ]:
-        return r.empty(
-            headers={
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Origin': origin
-            }
-        )
+        return {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': origin,
+        }
 
-    return r.empty()
+    return {}
+
+
+@api.options('/merge/multiple')
+async def cors_preflight_multiple(request: sanic.Request):
+    return r.empty(headers=cors_headers(request))
 
 
 @dataclass
@@ -106,7 +106,7 @@ class MergePayload:
 
 @api.post('/merge')
 @validate(json=MergePayload)
-async def merge_single(request, body: MergePayload):
+async def merge_single(request: sanic.Request, body: MergePayload):
     """Merge Horse
 
     Combine the layers of a single horse by its URL.
@@ -226,7 +226,7 @@ async def merge_single(request, body: MergePayload):
 
 
 @api.post('/layers')
-async def get_layers(request):
+async def get_layers(request: sanic.Request):
     payload: dict = request.json
     if not payload:
         return r.json({'message': 'Invalid request.'}, status=400)
@@ -268,25 +268,25 @@ async def get_layers(request):
 
 
 @api.post('/merge/multiple')
-async def merge_multiple(request):
+async def merge_multiple(request: sanic.Request):
     payload: dict = request.json
     if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        return r.json({'message': 'Invalid request.'}, status=400, headers=cors_headers(request))
 
     urls = payload.get('urls')
     if not urls or not isinstance(urls, list):
-        return r.json({'message': 'Invalid request.'}, status=400)
+        return r.json({'message': 'Invalid request.'}, status=400, headers=cors_headers(request))
 
     use_watermark: bool = payload.get('use_watermark', True)
     if not isinstance(use_watermark, bool):
-        return r.json({'message': 'Invalid type for use_watermark'}, status=400)
+        return r.json({'message': 'Invalid type for use_watermark'}, status=400, headers=cors_headers(request))
 
     hr: horsereality.Client = request.app.ctx.hr
 
     try:
         layers = [horsereality.Layer(http=hr.http, url=url) for url in urls]
     except:
-        return r.json({'message': 'One or more invalid layer URLs passed.'}, status=400)
+        return r.json({'message': 'One or more invalid layer URLs passed.'}, status=400, headers=cors_headers(request))
 
     bytefiles = []
     for layer in layers:
@@ -296,6 +296,7 @@ async def merge_multiple(request):
             return r.json(
                 {'message': f'{exc.status} when fetching layer at position {layers.index(layer)}: {layer.path}'},
                 status=400,
+                headers=cors_headers(request),
             )
         else:
             bytefiles.append(img_data)
@@ -309,18 +310,19 @@ async def merge_multiple(request):
         ))
     except:
         traceback.print_exc()
-        return r.json({'message': 'Failed to merge images.'}, status=500)
+        return r.json({'message': 'Failed to merge images.'}, status=500, headers=cors_headers(request))
 
     return r.json(
         {
             'merged': merged,
         },
-        status=200
+        status=200,
+        headers=cors_headers(request),
     )
 
 
 @api.get(r'/multi-share/<share_id:(\d{10})>')
-async def get_share_data(request, share_id):
+async def get_share_data(request: sanic.Request, share_id: str):
     if not request.app.ctx.redis:
         return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
 
@@ -336,7 +338,7 @@ async def get_share_data(request, share_id):
 
 
 @api.post('/multi-share')
-async def create_share_link(request):
+async def create_share_link(request: sanic.Request):
     if not request.app.ctx.redis:
         return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
 
