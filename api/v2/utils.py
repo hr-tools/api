@@ -7,21 +7,21 @@ from horsereality import Layer, LayerType
 # to the server
 white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
     'akhal_teke': {
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': 'ee532f869', 'tail': 'ee532f869'},
             'mare': {'body': 'b821651f9', 'tail': 'ee532f861'}
         },
-        'sab2/sab2': {
-            'stallion': {'body': '9ada1c034'},
-            'mare': {'body': '9ada1c034'}
+        'sb/sb': {
+            'stallion': {'body': 'ad686e083'},
+            'mare': {'body': '45ec369a4'}
         }
     },
     'arabian_horse': {
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': '140cb0216', 'tail': '983ab5ca1'},
             'mare': {'body': 'e9688c125', 'tail': '39faa8b87'}
         },
-        'sab2/sab2': {
+        'sb/sb': {
             'stallion': {'body': '6a3404f05'},
             'mare': {'body': '144659b49'}
         }
@@ -55,7 +55,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': '26a086ea0'},
             'mare': {'body': '26a086ea0'}
         },
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': '9adcd47e5', 'tail': '07b53e4e9'},
             'mare': {'body': '9adcd47e0', 'tail': '9adcd47e8'}
         },
@@ -63,7 +63,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': 'fa616ab64'},
             'mare': {'body': 'fa616ab69'}
         },
-        'SW1 rab/rab': {
+        'SW1 rb/rb': {
             'stallion': {'body': '4d9cddaa8', 'tail': '4d9cddaa8'},
             'mare': {'body': '4d9cddaa2', 'tail': '4d9cddaa3'}
         },
@@ -71,15 +71,15 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': '4b3df6d06', 'tail': '4b3df6d07'},
             'mare': {'body': '4b3df6d07', 'tail': '4b3df6d09'}
         },
-        'sab2/sab2': {
+        'sb/sb': {
             'stallion': {'body': '49d8b0b89'},
             'mare': {'body': '49d8b0b80'}
         },
-        'SW1 sab2/sab2': {
+        'SW1 sb/sb': {
             'stallion': {'body': '36808cac4'},
             'mare': {'body': '36808cac7'}
         },
-        'SW1/SW1 sab2/sab2': {
+        'SW1/SW1 sb/sb': {
             'stallion': {'body': '1d6bdb620', 'tail': '1d6bdb620'},
             'mare': {'body': '772eb1c19', 'tail': '772eb1c19'}
         }
@@ -173,7 +173,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': 'b4858d809', 'mane': 'b3acc6951', 'tail': 'f8f03d4f7'},
             'mare': {'body': '236c4be48', 'mane': '6ad2b7486', 'tail': '6ad2b7483'}
         },
-        'sab2/sab2': {
+        'sb/sb': {
             'stallion': {'body': 'ec6b68635'},
             'mare': {'body': 'ec3f4f641'}
         }
@@ -190,7 +190,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
         }
     },
     'pura_raza_española': {
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': 'f98ca9b17', 'tail': 'f98ca9b14'},
             'mare': {'body': '3241ceab2', 'tail': '6984ca066'}
         }
@@ -208,7 +208,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': 'b55401246'},
             'mare': {'body': '77225a284'}
         },
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': 'f12098f51', 'tail': 'f12098f52'},
             'mare': {'body': '385ce9101', 'tail': 'f12098f52'}
         },
@@ -222,7 +222,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
         }
     },
     'shire': {
-        'sab2/sab2': {
+        'sb/sb': {
             'stallion': {'body': '56c627016'},
             'mare': {'body': '1a300d2b0'}
         }
@@ -236,7 +236,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': 'ec8b59391', 'mane': 'ec8b59396'},
             'mare': {'body': 'c06b3d2c7', 'mane': 'c06b3d2c5'}
         },
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': '5bd0eee21', 'tail': '5bd0eee28'},
             'mare': {'body': '3321ed288', 'tail': 'a82d6cab8'}
         }
@@ -280,7 +280,7 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': '6aabe9204'},
             'mare': {'body': '6aabe9206'}
         },
-        'rab/rab': {
+        'rb/rb': {
             'stallion': {'body': 'fc2512596', 'tail': 'fc2512599'},
             'mare': {'body': 'fc2512592', 'tail': 'fc2512591'}
         },
@@ -292,11 +292,11 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
             'stallion': {'body': '3494da562'},
             'mare': {'body': 'd64b582b1'}
         },
-        'sab2/sab2': {
+        'sb/sb': {
             'stallion': {'body': '072d7c871'},
             'mare': {'body': '072d7c871'}
         },
-        'SW1/SW1 sab2/sab2': {
+        'SW1/SW1 sb/sb': {
             'stallion': {'body': 'a547be397'},
             'mare': {'body': '29e236050'}
         }
@@ -326,22 +326,49 @@ async def name_color(app, breed: str, layers: List[Layer]) -> Optional[Dict[str,
     notes: List[str] = []
 
     if colours:
-        colours_data_rows = await pool.fetch(
-            '''
-            SELECT dilution, base_genes, color, body_part
-            FROM color_layers
-            WHERE breed = $1
-            AND (
-                stallion_id = ANY($2::text[])
-                OR mare_id = ANY($2::text[])
-                OR foal_id = ANY($2::text[])
+        # Prefer a body layer for the color name if available
+        body_layer: Optional[Layer] = None
+        try:
+            body_layer = [layer for layer in colours if layer.body_part == 'body'][0]
+        except IndexError:
+            pass
+
+        if body_layer:
+            query = (
+                '''
+                SELECT dilution, base_genes, color, body_part
+                FROM color_layers
+                WHERE breed = $1
+                AND (
+                    stallion_id = $2
+                    OR mare_id = $2
+                    OR foal_id = $2
+                )
+                AND dilution IS NOT NULL
+                AND color IS NOT NULL
+                AND base_genes IS NOT NULL
+                ''',
+                breed, body_layer.id
             )
-            AND dilution IS NOT NULL
-            AND color IS NOT NULL
-            AND base_genes IS NOT NULL
-            ''',
-            breed, [layer.id for layer in colours]
-        )
+        else:
+            query = (
+                '''
+                SELECT dilution, base_genes, color, body_part
+                FROM color_layers
+                WHERE breed = $1
+                AND (
+                    stallion_id = ANY($2::text[])
+                    OR mare_id = ANY($2::text[])
+                    OR foal_id = ANY($2::text[])
+                )
+                AND dilution IS NOT NULL
+                AND color IS NOT NULL
+                AND base_genes IS NOT NULL
+                ''',
+                breed, [layer.id for layer in colours]
+            )
+
+        colours_data_rows = await pool.fetch(*query)
         unique = set()
         for row in colours_data_rows:
             if row['body_part'] == 'body':

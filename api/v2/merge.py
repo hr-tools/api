@@ -5,7 +5,7 @@ from functools import partial
 from io import BytesIO
 import json
 import random
-from typing import List, Optional
+from typing import List, Optional, Union
 import traceback
 from urllib.parse import urlunparse
 
@@ -13,6 +13,7 @@ from PIL import Image, UnidentifiedImageError
 import sanic
 from sanic import response as r
 from sanic_ext import validate
+from sanic.exceptions import InvalidUsage, NotFound, ServerError
 
 import horsereality
 from horsereality.utils import get_lifenumber_from_url
@@ -39,7 +40,7 @@ def add_horse_reality_logo(image, *, left=False):
     return new_image
 
 
-def pil_process(bytefiles, *, use_watermark=True, left_watermark=False):
+def pil_process(bytefiles: List[bytes], *, use_watermark=True, left_watermark=False):
     new_image = None
     for file in bytefiles:
         image = Image.open(BytesIO(file), formats=('PNG',))
@@ -76,25 +77,6 @@ def pil_process(bytefiles, *, use_watermark=True, left_watermark=False):
     return data_str
 
 
-def cors_headers(request: sanic.Request):
-    origin = request.headers.get('Origin')
-    if origin in [
-        'https://www.horsereality.com',
-        'https://v2.horsereality.com',
-    ]:
-        return {
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': origin,
-        }
-
-    return {}
-
-
-@api.options('/merge/multiple')
-async def cors_preflight_multiple(request: sanic.Request):
-    return r.empty(headers=cors_headers(request))
-
-
 @dataclass
 class MergePayload:
     url: str
@@ -104,8 +86,8 @@ class MergePayload:
     return_layers: Optional[bool] = False
 
 
-@api.post('/merge')
-@validate(json=MergePayload)
+#@api.post('/merge')
+#@validate(json=MergePayload)
 async def merge_single(request: sanic.Request, body: MergePayload):
     """Merge Horse
 
@@ -163,7 +145,7 @@ async def merge_single(request: sanic.Request, body: MergePayload):
 
     lifenumber: int = get_lifenumber_from_url(url)
     if not lifenumber:
-        return r.json({'message': 'Invalid URL.'}, status=400)
+        raise InvalidUsage('Invalid URL.')
 
     hr: horsereality.Client = request.app.ctx.hr
     horse: horsereality.Horse = await hr.get_horse(lifenumber)
@@ -187,16 +169,9 @@ async def merge_single(request: sanic.Request, body: MergePayload):
                 left_watermark=key == 'foal',
             ))
         except UnidentifiedImageError:
-            return r.json(
-                {'message': 'Failed to get the right images.'},
-                status=500,
-            )
+            raise ServerError('Failed to get the right images.')
         except:
-            traceback.print_exc()
-            return r.json(
-                {'message': 'Failed to merge images.'},
-                status=500,
-            )
+            raise ServerError('Failed to merge images.')
 
     horse_data = horse.to_dict()
 
@@ -222,22 +197,23 @@ async def merge_single(request: sanic.Request, body: MergePayload):
             **color_info,
         },
         status=200,
+        headers=request.app.ctx.cors_headers(request),
     )
 
 
-@api.post('/layers')
+#@api.post('/layers')
 async def get_layers(request: sanic.Request):
     payload: dict = request.json
     if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        raise InvalidUsage('Invalid request.')
 
     url: str = payload.get('url')
     if not url:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        raise InvalidUsage('Invalid request.')
 
     lifenumber: int = get_lifenumber_from_url(url)
     if not lifenumber:
-        return r.json({'message': 'Invalid URL.'}, status=400)
+        raise InvalidUsage('Invalid URL.')
 
     hr: horsereality.Client = request.app.ctx.hr
     horse: horsereality.Horse = await hr.get_horse(lifenumber)
@@ -264,40 +240,48 @@ async def get_layers(request: sanic.Request):
     return r.json(
         data,
         status=200,
+        headers=request.app.ctx.cors_headers(request),
     )
 
 
-@api.post('/merge/multiple')
-async def merge_multiple(request: sanic.Request):
-    payload: dict = request.json
-    if not payload:
-        return r.json({'message': 'Invalid request.'}, status=400, headers=cors_headers(request))
+@dataclass
+class MergeMultiPayload:
+    urls: Union[List[str], str]  # Shortcut stringified variables
+    use_watermark: Optional[bool] = True
 
-    urls = payload.get('urls')
+
+@api.post('/merge/multiple')
+@validate(json=MergeMultiPayload)
+async def merge_multiple(request: sanic.Request, body: MergeMultiPayload):
+    payload: dict = asdict(body)
+
+    urls: List[str] = payload['urls']
+    if isinstance(urls, str):
+        try:
+            urls = urls.splitlines()
+        except:
+            raise InvalidUsage('Invalid stringified layer URLs passed.')
+
     if not urls or not isinstance(urls, list):
-        return r.json({'message': 'Invalid request.'}, status=400, headers=cors_headers(request))
+        raise InvalidUsage('Invalid layer URLs passed.')
 
     use_watermark: bool = payload.get('use_watermark', True)
     if not isinstance(use_watermark, bool):
-        return r.json({'message': 'Invalid type for use_watermark'}, status=400, headers=cors_headers(request))
+        raise InvalidUsage('Invalid type for use_watermark.')
 
     hr: horsereality.Client = request.app.ctx.hr
 
     try:
         layers = [horsereality.Layer(http=hr.http, url=url) for url in urls]
     except:
-        return r.json({'message': 'One or more invalid layer URLs passed.'}, status=400, headers=cors_headers(request))
+        raise InvalidUsage('One or more invalid layer URLs passed.')
 
     bytefiles = []
     for layer in layers:
         try:
             img_data = await layer.read()
         except horsereality.HTTPException as exc:
-            return r.json(
-                {'message': f'{exc.status} when fetching layer at position {layers.index(layer)}: {layer.path}'},
-                status=400,
-                headers=cors_headers(request),
-            )
+            raise InvalidUsage(f'{exc.status} when fetching layer at position {layers.index(layer)}: {layer.url_path}')
         else:
             bytefiles.append(img_data)
 
@@ -309,38 +293,42 @@ async def merge_multiple(request: sanic.Request):
             left_watermark=layers[0].horse_type == 'foals',
         ))
     except:
-        traceback.print_exc()
-        return r.json({'message': 'Failed to merge images.'}, status=500, headers=cors_headers(request))
+        raise ServerError('Failed to merge images.')
 
     return r.json(
         {
             'merged': merged,
         },
         status=200,
-        headers=cors_headers(request),
+        headers=request.app.ctx.cors_headers(request),
     )
 
 
 @api.get(r'/multi-share/<share_id:(\d{10})>')
 async def get_share_data(request: sanic.Request, share_id: str):
     if not request.app.ctx.redis:
-        return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
+        raise InvalidUsage('This instance of Realtools does not support the share feature.')
 
     key = f'realtools-multishare-{share_id}'
     share_data = await request.app.ctx.redis.get(key)
     if share_data is None:
-        return r.json({'message': 'No such share ID exists.'}, status=404)
+        raise NotFound('No such share ID exists.')
 
     try:
-        return r.json(json.loads(share_data))
-    except:
-        return r.json({'message': 'Failed to load share data.'}, status=500)
+        data = json.loads(share_data)
+    except json.JSONDecodeError:
+        raise ServerError('Failed to load share data.')
+
+    if not data.get('layers') or not data.get('layers'):
+        raise InvalidUsage('The saved format for this share ID is invalid. It is likely just old.')
+
+    return r.json(data)
 
 
 @api.post('/multi-share')
 async def create_share_link(request: sanic.Request):
     if not request.app.ctx.redis:
-        return r.json({'message': 'This instance of Realtools does not support the share feature.'}, status=400)
+        raise InvalidUsage('This instance of Realtools does not support the share feature.')
 
     payload = request.json
     try:
@@ -348,8 +336,10 @@ async def create_share_link(request: sanic.Request):
             'layers': payload['layers'],
             'enabled': payload['enabled'],
         }
-    except KeyError:
-        return r.json({'message': 'Invalid request.'}, status=400)
+        assert isinstance(data['layers'], dict)
+        assert isinstance(data['enabled'], list)
+    except (KeyError, AssertionError):
+        raise InvalidUsage('Invalid data format provided.')
 
     expires_after = 604800  # 1 week
     expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=expires_after)
@@ -370,4 +360,15 @@ async def create_share_link(request: sanic.Request):
             )),
             'expires': int(expires.timestamp())
         },
+        headers=request.app.ctx.cors_headers(request),
     )
+
+
+async def cors_preflight(request: sanic.Request):
+    return r.empty(headers=request.app.ctx.cors_headers(request))
+
+
+api.add_route(cors_preflight, '/merge', ['OPTIONS'])
+api.add_route(cors_preflight, '/merge/multiple', ['OPTIONS'])
+api.add_route(cors_preflight, '/layers', ['OPTIONS'])
+api.add_route(cors_preflight, '/multi-share', ['OPTIONS'])

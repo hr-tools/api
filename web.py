@@ -1,5 +1,6 @@
 import json
 import traceback
+from urllib.parse import urlparse
 
 import aiohttp
 import asyncpg
@@ -10,10 +11,12 @@ import sanic
 from sanic import response as r
 from sanic.exceptions import SanicException
 
-from api import api
+from api import api, api_reroute, api_default
+
 import horsereality
 
 config = json.load(open('config.json'))
+debug: bool = config.get('debug', False)
 
 logger = logging.getLogger('realtools')
 logger.addHandler(logging.NullHandler())
@@ -24,28 +27,54 @@ if config.get('log') is not None:
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-try:
-    hr_email = config['authentication']['com']['email']
-    hr_password = config['authentication']['com']['password']
-except:
-    # This is residue from when Horse Reality hosted two servers and thus needed different authentication values for each
-    msg = 'You must have proper authentication values. (authentication.com.email, authentication.com.password)'
-    raise ValueError(msg)
-
 app = sanic.Sanic('Realtools')
-app.blueprint(api)
+app.blueprint(api)  # main API blueprint - routes available on the top level
+app.blueprint(api_reroute)  # directs `/api/...` calls to the top level
+app.blueprint(api_default)  # defaults calls with no specifier to a version
 app.config.FALLBACK_ERROR_FORMAT = 'json'
 app.ctx.__realtools_version__ = 'v2.2'
 app.ctx.realtools_config = config
+app.ctx.debug = debug
+
+def origin_allowed_cors(origin: str) -> bool:
+    """Returns whether a given origin is allowed under Realtools's CORS policy."""
+    try:
+        parsed = urlparse(origin)
+    except:
+        return False
+    else:
+        if parsed.scheme != 'https':
+            return False
+
+        top_level = parsed.netloc.split('.', 1)[1]
+        if '.' not in top_level:
+            # the netloc does not have a subdomain
+            top_level = parsed.netloc
+
+        return top_level in ['horsereality.com', 'shay.cat']
+
+def cors_headers(request: sanic.Request) -> dict:
+    """Returns a dictionary of headers based on origin_allowed_cors."""
+    origin = request.headers.get('Origin')
+    if request.app.ctx.origin_allowed_cors(origin):
+        return {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': origin,
+        }
+
+    return {}
+
+app.ctx.origin_allowed_cors = origin_allowed_cors
+app.ctx.cors_headers = cors_headers
 
 @app.listener('after_server_start')
-async def server_init(app, loop):
-    app.ctx.hr = horsereality.Client()
-    await app.ctx.hr.login(hr_email, hr_password)
-    logger.info('Logged into Horse Reality')
-
+async def server_init(app: sanic.Sanic, _):
     # For v1
-    app.ctx.session = app.ctx.hr.http.session
+    app.ctx.session = aiohttp.ClientSession()
+
+    app.ctx.hr = horsereality.Client(config['remember_cookie_name'], config['remember_cookie_value'], auto_rollover=True)
+    await app.ctx.hr.verify()
+    logger.info('Initialized Horse Reality client')
 
     if config.get('redis') is not None:
         app.ctx.redis = aioredis.Redis.from_url(config['redis'], encoding='utf-8')
@@ -73,25 +102,27 @@ status_code_dict = {
 }
 
 @app.exception(Exception)
-async def error_handler(_, exception):
+async def error_handler(request: sanic.Request, exception: BaseException):
     status_code = getattr(exception, 'status_code', getattr(exception, 'status', 500))
-    error_name = status_code_dict.get(status_code, 'Internal Server Error')
+    error_name = None
+    error_message = status_code_dict.get(status_code, 'Internal Server Error')
 
     if status_code == 500:
         traceback.print_exc()
 
     if isinstance(exception, horsereality.HorseRealityException):
-        error_name = exception.message
+        error_message = exception.message
 
     elif isinstance(exception, SanicException):
-        error_name = str(exception)
+        error_message = str(exception)
+        error_name = (exception.extra or {}).get('name')
 
     return r.json(
-        {'status': status_code, 'message': error_name},
+        {'status': status_code, 'message': error_message, 'name': error_name},
         status=status_code,
-        headers={'Access-Control-Allow-Origin': '*'},
+        headers=request.app.ctx.cors_headers(request),
     )
 
 run_address = config.get('address', 'localhost')
 run_port = config.get('port', 2965)
-app.run(run_address, run_port, debug=config.get('debug', False))
+app.run(run_address, run_port, debug=debug, auto_reload=debug)

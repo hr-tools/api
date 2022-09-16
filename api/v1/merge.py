@@ -155,7 +155,7 @@ async def cors_preflight_merge_multiple(request):
         'Access-Control-Allow-Origin': '*'
     })
 
-@api.post('/merge')
+#@api.post('/merge')
 async def merge_single(request):
     payload = request.json
     if not payload:
@@ -276,7 +276,7 @@ async def merge_single(request):
         headers={'Access-Control-Allow-Origin': '*'}
     )
 
-@api.post('/layers')
+#@api.post('/layers')
 async def get_layers(request):
     payload = request.json
     if not payload:
@@ -344,9 +344,9 @@ async def get_layers(request):
             layers_sized[horse_type].append(layer_object)
 
     if payload.get('use_foal') is True:
-        layers_sized = layers_sized.get('foal') or layers_sized['horse']
+        layers_sized = layers_sized.get('foal') or layers_sized.get('adult') or layers_sized['horse']
     else:
-        layers_sized = layers_sized['horse']
+        layers_sized = layers_sized.get('adult') or layers_sized['horse']
 
     try:
         horse_name = re.sub(r' - Horse Reality$', '', str(horse_info['title']))

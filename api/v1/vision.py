@@ -21,7 +21,7 @@ run_port = config.get('port', 2965)
 
 log = logging.getLogger('realtools')
 
-@api.post('/predict')
+#@api.post('/predict')
 async def predict(request):
     payload = request.json
     if not payload:

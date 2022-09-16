@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass
 import json
 import logging
 import random
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import sanic
 from sanic import response as r
@@ -11,24 +13,49 @@ from sanic_ext import validate
 
 from .utils import name_color, white_pattern_reserves
 import horsereality
-from horsereality.utils import get_lifenumber_from_url
 import predictor
+
+if TYPE_CHECKING:
+    import asyncpg
+
 
 api = sanic.Blueprint('Vision-v2')
 log = logging.getLogger('realtools')
 
 
 @dataclass
+class PartialHorseInfo:
+    lifenumber: int
+    name: str
+    sex: str
+    breed: str
+    age: Optional[str] = None
+    birthdate: Optional[str] = None
+    height: Optional[str] = None
+    location: Optional[str] = None
+    owner: Optional[str] = None
+    registry: Optional[str] = None
+    predicates: Optional[str] = None
+
+
+@dataclass
 class PredictPayload:
-    url: str
+    horse_info: PartialHorseInfo
+    layer_urls: Union[List[str], str]  # Shortcut stringified variables
     genes: Optional[dict] = None
     # typing.Dict is not properly recognized so we can't notate this parameter
     # with as much detail as would be desirable
 
 
+@dataclass
+class PredictLifenumberPayload:
+    lifenumber: int
+    genes: Optional[dict] = None
+
+
 @api.post('/predict')
 @validate(json=PredictPayload)
-async def predict(request, body: PredictPayload):
+async def predict(request: sanic.Request, body: PredictPayload):
     """Predict Foal
 
     Return a prediction of what the foal will look like when it is an adult, including white layers and color info.
@@ -36,18 +63,24 @@ async def predict(request, body: PredictPayload):
     openapi:
     ---
     parameters:
-        - name: url
+        - name: horse_info
           in: body
-          description: The URL of the foal
+          description: Partial info about the horse - `sex` and `breed` are important here
           required: true
           schema:
-            type: string
-            example: https://www.horsereality.com/horses/9999999/
+            type: object
+            example: {"lifenumber": 9999999, "name": "Foal Doe 9999999", "sex": "Stallion", "breed": "Akhal-Teke"}
+        - name: layer_urls
+          in: body
+          description: The URLs of the foal's layers
+          required: true
+          schema:
+            type: array
+            example: ["https://www.horsereality.com/upload/colours/foals/body/large/d09169762.png", "https://www.horsereality.com/upload/whites/foals/body/large/8984dc670.png", "https://www.horsereality.com/upload/colours/foals/mane/large/d09169762.png", "https://www.horsereality.com/upload/colours/foals/tail/large/4094b3ca8.png"]
         - name: genes
           in: body
           description: Gene information to use for color info overrides and white layer supplementation
           required: false
-          default: true
           schema:
             type: object
             example: {"agouti": "A/a", "roan": "RN"}
@@ -55,36 +88,112 @@ async def predict(request, body: PredictPayload):
         '200':
             description: Some prediction information.
         '400':
-            description: Bad request. Could be because you provided an invalid `url` or the `url` you provided does not have a foal on the page.
+            description: Bad request.
         '404':
             description: Something was not found. Usually because of missing data for the foal's breed or its layers.
     """
+
+    # 2022-08-09: Our standard authentication system does not work anymore,
+    # so we have to rely on clients to grab the layers for us.
+
+    # 2022-09-15: The horsereality package has been updated to support another
+    # form of direct authentication, and as such Vision has been split into
+    # this route as well as one that accepts a lifenumber.
+
     payload: Dict[str, Any] = asdict(body)
 
-    url: str = payload['url']
+    horse_info: PartialHorseInfo = payload['horse_info']
+    layer_urls: List[str] = payload['layer_urls']
     genes: Dict[str, str] = payload['genes'] or {}
 
-    lifenumber: int = get_lifenumber_from_url(url)
-    if not lifenumber:
-        raise InvalidUsage('Invalid URL.')
+    if isinstance(layer_urls, str):
+        try:
+            layer_urls = layer_urls.splitlines()
+        except:
+            raise InvalidUsage('Invalid stringified layer URLs passed.', extra={'name': 'layers_invalid_string'})
+
+    if not layer_urls or not isinstance(layer_urls, list):
+        raise InvalidUsage('Invalid layer URLs passed.', extra={'name': 'layers_invalid_type'})
 
     hr: horsereality.Client = request.app.ctx.hr
-    horse: horsereality.Horse = await hr.get_horse(lifenumber)
+    try:
+        layers = []
+        for layer_url in layer_urls:
+            if not layer_url.startswith('https://'):
+                # We accept bare keys like colours/foals/tail/large/id as well as full URLs
+                # This is obviously not bulletproof but clients will just get
+                # a validation error if they don't provide an expected format
+                layer_url = f'https://www.horsereality.com/upload/{layer_url}.png'
+            layer = hr.create_layer(layer_url)
+            layers.append(layer)
+    except ValueError:
+        raise InvalidUsage('Invalid layer URL(s).', extra={'name': 'layers_invalid'})
+
+    horse_types = set(layer.horse_type for layer in layers)
+    if len(horse_types) != 1:
+        raise InvalidUsage('Mismatched layer URLs provided.', extra={'name': 'layers_unmatching'})
+    if list(horse_types)[0] != 'foals':
+        raise InvalidUsage('This horse is not a foal.', extra={'name': 'layers_not_foal'})
+
+    horse_info['layers'] = {'foal': layers}
+    horse = horsereality.Horse(http=hr.http, data=horse_info)
+
+    return await predict_with_layers(request, horse, genes)
+
+
+@api.post('/predict-lifenumber')
+@validate(json=PredictLifenumberPayload)
+async def predict(request: sanic.Request, body: PredictLifenumberPayload):
+    """Predict Foal with Lifenumber
+
+    Return a prediction of what the foal will look like when it is an adult, including white layers and color info.
+    This endpoint differs from Predict Foal in that it does not require layer URLs at the expense of a slightly slower result time.
+
+    openapi:
+    ---
+    parameters:
+        - name: lifenumber
+          in: body
+          description: The foal's lifenumber
+          required: true
+          schema:
+            type: integer
+        - name: genes
+          in: body
+          description: Gene information to use for color info overrides and white layer supplementation
+          required: false
+          schema:
+            type: object
+            example: {"agouti": "A/a", "roan": "RN"}
+    responses:
+        '200':
+            description: Some prediction information.
+        '400':
+            description: Bad request.
+        '404':
+            description: Something was not found. Usually because of missing data for the foal's breed or its layers.
+    """
+
+    payload: Dict[str, Any] = asdict(body)
+
+    lifenumber: int = payload['lifenumber']
+    genes: Dict[str, str] = payload['genes'] or {}
+
+    hr: horsereality.Client = request.app.ctx.hr
+    horse = await hr.get_horse(lifenumber)
 
     if not horse.foal_layers:
-        raise InvalidUsage('This horse is not a foal.')
+        raise InvalidUsage('This horse is not a foal.', extra={'name': 'layers_not_foal'})
+    if not horse.is_foal() and horse.foal_lifenumber:
+        horse = await horse.fetch_foal()
 
-    if horse.foal_lifenumber:
-        # SITE-17
-        # We are looking at the dam, which means we do not know the foal's sex.
-        # Doing this also allows us to show the foal's name and always link to the foal's page, but this is less important.
-        horse = await hr.get_horse(horse.foal_lifenumber)
+    return await predict_with_layers(request, horse, genes)
 
-        # If this is false then we are already looking at the foal.
 
-    pool = request.app.ctx.psql_pool
+async def predict_with_layers(request: sanic.Request, horse: horsereality.Horse, genes: Dict[str, str]):
+    pool: asyncpg.Pool = request.app.ctx.psql_pool
     breed: str = horse.breed
-    sex: str = horse.sex
+    sex: str = horse.sex.lower()
     if sex == 'gelding':
         sex = 'stallion'
 
@@ -100,8 +209,8 @@ async def predict(request, body: PredictPayload):
     # Get layer orders
     orders = getattr(horsereality.BreedOrders, breed, None)
     if not orders or (orders and not orders.value.get(sex)):
-        log.debug(f'Found no orders for breed {breed!r} while predicting {url}')
-        raise NotFound('No data is available for this breed, sorry. This will usually only happen on newer breeds that Realvision does not support yet.')
+        log.debug(f'Found no orders for breed {breed!r} while predicting {horse.lifenumber}')
+        raise NotFound('No data is available for this breed or sex, sorry. This will usually only happen on newer breeds that Realvision does not support yet.', extra={'name': 'no_data_orders'})
     orders = orders.value[sex]
 
     # Match to adult layers
@@ -115,8 +224,8 @@ async def predict(request, body: PredictPayload):
         breed, foal_colour_ids
     )
     if not colour_layer_rows:
-        log.debug(f'Found no colour layers while predicting {url} - IDs {json.dumps(foal_colour_ids)}')
-        raise NotFound('No data is available for this horse, sorry.')
+        log.debug(f'Found no colour layers while predicting {horse.lifenumber} - IDs {json.dumps(foal_colour_ids)}')
+        raise NotFound('No data is available for this horse, sorry.', extra={'name': 'no_data_horse'})
 
     # Duplicate tracking
     colour_layer_id_counts = [row['foal_id'] for row in colour_layer_rows]
@@ -307,15 +416,15 @@ async def predict(request, body: PredictPayload):
             gene_values.pop('TO/TO')
             gene_values['SW1 TO/TO'] = 'Splash Homozygous Tobiano'
 
-        if gene_values.get('SW1') and gene_values.get('rab/rab'):
+        if gene_values.get('SW1') and gene_values.get('rb/rb'):
             gene_values.pop('SW1')
-            gene_values.pop('rab/rab')
-            gene_values['SW1 rab/rab'] = 'Splash Rabicano'
+            gene_values.pop('rb/rb')
+            gene_values['SW1 rb/rb'] = 'Splash Rabicano'
 
-        if gene_values.get('SW1') and gene_values.get('sab2/sab2'):
+        if gene_values.get('SW1') and gene_values.get('sb/sb'):
             gene_values.pop('SW1')
-            gene_values.pop('sab2/sab2')
-            gene_values['SW1 sab2/sab2'] = 'Splash Sabino2'
+            gene_values.pop('sb/sb')
+            gene_values['SW1 sb/sb'] = 'Splash Sabino2'
 
         if gene_values.get('SW1/SW1') and gene_values.get('TO'):
             gene_values.pop('SW1/SW1')
@@ -327,10 +436,10 @@ async def predict(request, body: PredictPayload):
             gene_values.pop('TO/TO')
             gene_values['SW1/SW1 TO/TO'] = 'Double Splash Homozygous Tobiano'
 
-        if gene_values.get('SW1/SW1') and gene_values.get('sab2/sab2'):
+        if gene_values.get('SW1/SW1') and gene_values.get('sb/sb'):
             gene_values.pop('SW1/SW1')
-            gene_values.pop('sab2/sab2')
-            gene_values['SW1/SW1 sab2/sab2'] = 'Double Splash Sabino2'
+            gene_values.pop('sb/sb')
+            gene_values['SW1/SW1 sb/sb'] = 'Double Splash Sabino2'
 
         white_pattern_color_name_to_add = set()
         for gene_value, gene_name in gene_values.items():
@@ -353,6 +462,7 @@ async def predict(request, body: PredictPayload):
                         continue
 
                     url = f'https://www.horsereality.com/upload/whites/{sex}s/{body_part}/large/{white_id}.png'
+                    urls_data[body_part] = urls_data.get(body_part, {'colours': None, 'white_reserves': []})
                     urls_data[body_part]['white_reserves'].append(url)
 
                     # color & genotype display
@@ -484,7 +594,7 @@ async def predict(request, body: PredictPayload):
     if is_roan:
         color_info['dilution'] += ' RN'
     if is_rab:
-        color_info['dilution'] += ' rab/rab'
+        color_info['dilution'] += ' rb/rb'
 
     # We include these extra details for the "Import to Multi" button
     # They _could be_ filled in by the client, though
@@ -514,7 +624,16 @@ async def predict(request, body: PredictPayload):
             },
             'selected_genes': genes,  # We use this behind the scenes for share query arguments
         },
+        headers=request.app.ctx.cors_headers(request),
     )
+
+
+async def cors_preflight(request: sanic.Request):
+    return r.empty(headers=request.app.ctx.cors_headers(request))
+
+
+api.add_route(cors_preflight, '/predict', ['OPTIONS'])
+api.add_route(cors_preflight, '/predict-lifenumber', ['OPTIONS'])
 
 
 # This is a legacy endpoint for one of our local tools - it is not useful for
@@ -523,14 +642,14 @@ async def predict(request, body: PredictPayload):
 async def parse_sheet(request):
     file = request.files.get('csv')
     if not file:
-        return r.json({'message': 'Must provide a CSV to parse.'}, status=400)
+        raise InvalidUsage('Must provide a CSV to parse.')
 
     parser = predictor.SheetParser()
     try:
         layers = parser.parse(raw=file.body.decode('utf-8'))
     except Exception as exc:
         log.debug(f'Failed to parse a sheet: {exc.__class__.__name__} {str(exc)}')
-        return r.json({'message': 'Invalid CSV data.'}, status=400)
+        raise InvalidUsage('Invalid CSV data.')
 
     return r.json(layers, status=200)
 

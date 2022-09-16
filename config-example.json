@@ -2,13 +2,9 @@
     "address": "localhost",
     "port": 2965,
     "debug": false,
-    "authentication": {
-        "com": {
-            "email": "email@horsereality.com",
-            "password": "password123"
-        }
-    },
     "redis": "redis://shay@localhost",
+    "remember_cookie_name": "remember_web_...",
+    "remember_cookie_value": "...",
     "postgres": {
         "database": "realtools",
         "user": "username",
