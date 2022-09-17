@@ -8,7 +8,7 @@ The source is provided here primarily for educational purposes - I am aware that
 
 A live instance can be found at [realtools.shay.cat](https://realtools.shay.cat). This section is for if you wish to host your own instance for whatever reason you may have. Be sure as well to abide by [this project's license](LICENSE).
 
-In order to have a face for this API, you will also need to run an instance of [the front-end server](https://github.com/hr-tools/website).
+The face you see at the above domain can be found at [this repository](https://github.com/hr-tools/website). Chances are you will want to design a custom interface if you are self-hosting this API, however.
 
 ## Requirements
 
