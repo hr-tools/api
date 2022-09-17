@@ -184,7 +184,11 @@ async def predict(request: sanic.Request, body: PredictLifenumberPayload):
 
     if not horse.foal_layers:
         raise InvalidUsage('This horse is not a foal.', extra={'name': 'layers_not_foal'})
+
     if not horse.is_foal() and horse.foal_lifenumber:
+        # SITE-17
+        # We are looking at the dam, which means we do not know the foal's sex.
+        # Doing this also allows us to show the foal's name and always link to the foal's page, but this is less important.
         horse = await horse.fetch_foal()
 
     return await predict_with_layers(request, horse, genes)
