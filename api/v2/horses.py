@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import logging
-from typing import List, Literal, Optional
+from typing import List
 
 import sanic
 from sanic import response as r

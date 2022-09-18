@@ -17,7 +17,6 @@ from sanic_ext import validate
 from sanic.exceptions import InvalidUsage, NotFound, ServerError
 
 import horsereality
-from horsereality.utils import get_lifenumber_from_url
 
 from .utils import name_color
 
