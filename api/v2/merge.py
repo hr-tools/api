@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import datetime
 from dataclasses import asdict, dataclass
@@ -63,8 +64,7 @@ def pil_process(bytefiles: List[bytes], *, use_watermark=True, left_watermark=Fa
         new_image = Image.alpha_composite(new_image, image)
 
     if new_image is None:
-        msg = 'No images.'
-        raise ValueError(msg)
+        raise ValueError('No images.')
 
     if use_watermark is True:
         new_image = add_horse_reality_logo(new_image, left=left_watermark)
@@ -79,30 +79,30 @@ def pil_process(bytefiles: List[bytes], *, use_watermark=True, left_watermark=Fa
 
 @dataclass
 class MergePayload:
-    url: str
+    lifenumber: int
     use_whites: Optional[bool] = True
     use_watermark: Optional[bool] = True
     return_color_info: Optional[bool] = False
     return_layers: Optional[bool] = False
 
 
-#@api.post('/merge')
-#@validate(json=MergePayload)
+@api.post('/merge')
+@validate(json=MergePayload)
 async def merge_single(request: sanic.Request, body: MergePayload):
     """Merge Horse
 
-    Combine the layers of a single horse by its URL.
+    Combine the layers of a single horse by its lifenumber.
 
     openapi:
     ---
     parameters:
-        - name: url
+        - name: lifenumber
           in: body
-          description: The URL of the horse
+          description: The lifenumber of the horse
           required: true
           schema:
-            type: string
-            example: https://www.horsereality.com/horses/1/
+            type: integer
+            example: 1
         - name: use_whites
           in: body
           description: Whether to include white layers on the result
@@ -126,7 +126,7 @@ async def merge_single(request: sanic.Request, body: MergePayload):
             type: boolean
         - name: return_layers
           in: body
-          description: Whether to include the `layers` key
+          description: Whether to include `horse.layers`
           required: false
           default: false
           schema:
@@ -137,15 +137,14 @@ async def merge_single(request: sanic.Request, body: MergePayload):
     """
     payload: dict = asdict(body)
 
-    url: str = payload['url']
+    lifenumber: int = payload['lifenumber']
     use_whites: bool = payload['use_whites']
     use_watermark: bool = payload['use_watermark']
     return_color_info: bool = payload['return_color_info']
     return_layers: bool = payload['return_layers']
 
-    lifenumber: int = get_lifenumber_from_url(url)
-    if not lifenumber:
-        raise InvalidUsage('Invalid URL.')
+    if lifenumber < 1:
+        raise InvalidUsage('Invalid lifenumber.')
 
     hr: horsereality.Client = request.app.ctx.hr
     horse: horsereality.Horse = await hr.get_horse(lifenumber)
@@ -157,12 +156,13 @@ async def merge_single(request: sanic.Request, body: MergePayload):
     }
 
     image_data = {}
+    loop = asyncio.get_event_loop()
     for key, bytes_layers_list in bytefiles.items():
         if not bytes_layers_list:
             image_data[key] = None
             continue
         try:
-            image_data[key] = await hr.loop.run_in_executor(None, partial(
+            image_data[key] = await loop.run_in_executor(None, partial(
                 pil_process,
                 bytes_layers_list,
                 use_watermark=use_watermark,
@@ -178,7 +178,11 @@ async def merge_single(request: sanic.Request, body: MergePayload):
     if not return_layers:
         horse_data.pop('layers')
 
-    color_info = {}
+    return_payload = {
+        'horse': horse_data,
+        'merged': image_data,
+    }
+
     if return_color_info:
         try:
             data = await name_color(request.app, horse.breed, horse.layers)
@@ -188,57 +192,10 @@ async def merge_single(request: sanic.Request, body: MergePayload):
         if data is None:
             data = {'errors': ['colors_no_info_available']}
 
-        color_info = {'color_info': data}
+        return_payload['color_info'] = data
 
     return r.json(
-        {
-            **horse_data,
-            'merged': image_data,
-            **color_info,
-        },
-        status=200,
-        headers=request.app.ctx.cors_headers(request),
-    )
-
-
-#@api.post('/layers')
-async def get_layers(request: sanic.Request):
-    payload: dict = request.json
-    if not payload:
-        raise InvalidUsage('Invalid request.')
-
-    url: str = payload.get('url')
-    if not url:
-        raise InvalidUsage('Invalid request.')
-
-    lifenumber: int = get_lifenumber_from_url(url)
-    if not lifenumber:
-        raise InvalidUsage('Invalid URL.')
-
-    hr: horsereality.Client = request.app.ctx.hr
-    horse: horsereality.Horse = await hr.get_horse(lifenumber)
-
-    data = {
-        'lifenumber': horse.lifenumber,
-        'name': horse.name,
-    }
-
-    if payload.get('use_foal') is True:
-        # prefer foal
-        use_layers = horse.foal_layers or horse.layers
-
-    elif payload.get('use_foal') is False:
-        # prefer adult
-        use_layers = horse.adult_layers or horse.layers
-
-    else:
-        # use whichever we are actually looking at
-        use_layers =  horse.layers
-
-    data['layers'] = list({**layer.to_dict(), 'key_id': f'{random.randint(10000, 99999)}-{layer.id}'} for layer in use_layers)
-
-    return r.json(
-        data,
+        return_payload,
         status=200,
         headers=request.app.ctx.cors_headers(request),
     )
@@ -272,9 +229,14 @@ async def merge_multiple(request: sanic.Request, body: MergeMultiPayload):
     hr: horsereality.Client = request.app.ctx.hr
 
     try:
-        layers = [horsereality.Layer(http=hr.http, url=url) for url in urls]
-    except:
-        raise InvalidUsage('One or more invalid layer URLs passed.')
+        layers: List[horsereality.Layer] = []
+        for layer_url in urls:
+            if not layer_url.startswith('https://'):
+                # Accept bare keys like colours/foals/tail/large/id
+                layer_url = f'https://www.horsereality.com/upload/{layer_url}.png'
+            layers.append(hr.create_layer(layer_url))
+    except ValueError:
+        raise InvalidUsage('Invalid layer URL(s).', extra={'name': 'layers_invalid'})
 
     bytefiles = []
     for layer in layers:
@@ -285,8 +247,9 @@ async def merge_multiple(request: sanic.Request, body: MergeMultiPayload):
         else:
             bytefiles.append(img_data)
 
+    loop = asyncio.get_event_loop()
     try:
-        merged = await hr.loop.run_in_executor(None, partial(
+        merged = await loop.run_in_executor(None, partial(
             pil_process,
             bytefiles,
             use_watermark=use_watermark,
@@ -370,5 +333,4 @@ async def cors_preflight(request: sanic.Request):
 
 api.add_route(cors_preflight, '/merge', ['OPTIONS'])
 api.add_route(cors_preflight, '/merge/multiple', ['OPTIONS'])
-api.add_route(cors_preflight, '/layers', ['OPTIONS'])
 api.add_route(cors_preflight, '/multi-share', ['OPTIONS'])
