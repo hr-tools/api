@@ -18,8 +18,8 @@ white_pattern_reserves: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
     },
     'arabian_horse': {
         'rb/rb': {
-            'stallion': {'body': '140cb0216', 'tail': '983ab5ca1'},
-            'mare': {'body': 'e9688c125', 'tail': '39faa8b87'}
+            'stallion': {'body': 'd830bcf20', 'tail': 'f1e0fb655'},
+            'mare': {'body': 'f1e0fb651', 'tail': 'f1e0fb657'}
         },
         'sb/sb': {
             'stallion': {'body': '6a3404f05'},
