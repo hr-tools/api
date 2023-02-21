@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/home/shay/horsereality-python')
 import json
 import traceback
 from urllib.parse import urlparse
@@ -72,9 +74,9 @@ async def server_init(app: sanic.Sanic, _):
     # For v1
     app.ctx.session = aiohttp.ClientSession()
 
-    app.ctx.hr = horsereality.Client(config['remember_cookie_name'], config['remember_cookie_value'], auto_rollover=True)
+    app.ctx.hr = horsereality.Client(config['remember_cookie_name'], config['remember_cookie_value'], allow_unverified_client=True, auto_rollover=True)
+    logger.info('Attempting to initialize Horse Reality client')
     await app.ctx.hr.verify()
-    logger.info('Initialized Horse Reality client')
 
     if config.get('redis') is not None:
         app.ctx.redis = aioredis.Redis.from_url(config['redis'], encoding='utf-8')
@@ -109,6 +111,7 @@ async def error_handler(request: sanic.Request, exception: BaseException):
 
     if status_code == 500:
         traceback.print_exc()
+        logger.error(traceback.format_exc())
 
     if isinstance(exception, horsereality.HorseRealityException):
         error_message = exception.message
