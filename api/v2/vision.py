@@ -547,23 +547,28 @@ async def predict_with_layers(request: sanic.Request, horse: horsereality.Horse,
 
                 for index, row in enumerate(possible_layer_rows):
                     if row[f'{sex}_id'] == before_id and row['body_part'] == 'body':
-                        if 'mane' not in white_urls:
-                            missing_is_after = list(before_table.keys()).index('mane') > list(before_table.keys()).index('body')
-                            missing_row = possible_layer_rows[index + (1 if missing_is_after else -1)]
-                            adult_id = missing_row[f'{sex}_id']
-                            if adult_id:
-                                url = f'https://www.horsereality.com/upload/whites/{sex}s/mane/large/{adult_id}.png'
-                                urls_data['mane'] = urls_data.get('mane', {'colours': None})
-                                urls_data['mane']['whites'] = [url]
+                        try:
+                            if 'mane' not in white_urls:
+                                missing_is_after = list(before_table.keys()).index('mane') > list(before_table.keys()).index('body')
+                                missing_row = possible_layer_rows[index + (1 if missing_is_after else -1)]
+                                adult_id = missing_row[f'{sex}_id']
+                                if adult_id:
+                                    url = f'https://www.horsereality.com/upload/whites/{sex}s/mane/large/{adult_id}.png'
+                                    urls_data['mane'] = urls_data.get('mane', {'colours': None})
+                                    urls_data['mane']['whites'] = [url]
 
-                        if 'tail' not in white_urls:
-                            missing_is_after = list(before_table.keys()).index('tail') > list(before_table.keys()).index('body')
-                            missing_row = possible_layer_rows[index + (2 if missing_is_after else -2)]
-                            adult_id = missing_row[f'{sex}_id']
-                            if adult_id:
-                                url = f'https://www.horsereality.com/upload/whites/{sex}s/tail/large/{adult_id}.png'
-                                urls_data['tail'] = urls_data.get('tail', {'colours': None})
-                                urls_data['tail']['whites'] = [url]
+                            if 'tail' not in white_urls:
+                                missing_is_after = list(before_table.keys()).index('tail') > list(before_table.keys()).index('body')
+                                missing_row = possible_layer_rows[index + (2 if missing_is_after else -2)]
+                                adult_id = missing_row[f'{sex}_id']
+                                if adult_id:
+                                    url = f'https://www.horsereality.com/upload/whites/{sex}s/tail/large/{adult_id}.png'
+                                    urls_data['tail'] = urls_data.get('tail', {'colours': None})
+                                    urls_data['tail']['whites'] = [url]
+
+                        except IndexError:
+                            # We don't have the missing row even though we thought we did
+                            pass
 
                         break
 
@@ -655,7 +660,11 @@ async def parse_sheet(request):
         log.debug(f'Failed to parse a sheet: {exc.__class__.__name__} {str(exc)}')
         raise InvalidUsage('Invalid CSV data.')
 
-    return r.json(layers, status=200)
+    return r.json(
+        layers,
+        status=200,
+        headers={'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Origin': '*'},
+    )
 
 
 @api.options('/parse-sheet')
