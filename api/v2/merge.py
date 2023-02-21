@@ -191,6 +191,7 @@ async def merge_single(request: sanic.Request, body: MergePayload):
         if data is None:
             data = {'errors': ['colors_no_info_available']}
 
+        data.pop('_raw_testable_color', None)
         return_payload['color_info'] = data
 
     return r.json(
